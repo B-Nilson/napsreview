@@ -1,2 +1,4 @@
 ^napsreview\.Rproj$
 ^\.Rproj\.user$
+^[.]?air[.]toml$
+^\.vscode$
