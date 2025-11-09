@@ -7,10 +7,10 @@ format_naps_data <- function(naps_data) {
     lng = "Longitude//Longitude",
     lat = "Latitude//Latitude",
     date = "Date//Date",
-    hour_local, # from H## headers
+    "hour_local", # from H## headers
     pollutant = "Pollutant//Polluant",
     method_code = "Method Code//Code Méthode",
-    value # from H## columns
+    "value" # from H## columns
   )
 
   # Go from wide format to long and do some tidying
