@@ -1,4 +1,4 @@
-get_naps_data <- function(years, pollutants = "PM25") {
+get_naps_data <- function(years, pollutants = c("PM25", "O3", "NO2")) {
   base_url <- "https://data-donnees.az.ec.gc.ca/api/file"
   archive_dir <- "/air/monitor/national-air-pollution-surveillance-naps-program/Data-Donnees/%YEAR%/ContinuousData-DonneesContinu/HourlyData-DonneesHoraires/"
   file_paths <- years |>
