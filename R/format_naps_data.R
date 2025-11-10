@@ -17,10 +17,6 @@ format_naps_data <- function(naps_data_list) {
   value_unit <- naps_data_list$header$value[
     stringr::str_detect(naps_data_list$header$label, "Units")
   ]
-  created_on <- naps_data_list$header$value[
-    stringr::str_detect(naps_data_list$header$label, "File generated on")
-  ] |>
-    lubridate::ymd(tz = "UTC")
   naps_data_long <- naps_data_list$data |>
     # one column per hour with values -> one column of hours + one column of values
     tidyr::pivot_longer(
@@ -29,7 +25,8 @@ format_naps_data <- function(naps_data_list) {
       values_to = "value"
     ) |>
     # rename and reorder columns
-    dplyr::select(dplyr::all_of(desired_columns)) |>
+    dplyr::select(dplyr::any_of(desired_columns)) |>
+    # cleanup
     dplyr::mutate(
       # replace NA placeholder
       value = value |> handyr::swap(-999, NA),
@@ -38,14 +35,14 @@ format_naps_data <- function(naps_data_list) {
         stringr::str_remove("H") |>
         as.integer(),
       # set units using header
-      value = value |> units::set_units(value_unit, mode = "standard"),
-      # include file/entry creation dates
-      file_created_on = created_on,
-      file_accessed_on = lubridate::now(tzone = "UTC")
-    )
+      value = value |> units::set_units(value_unit, mode = "standard")
+    ) |> 
+    # drop missing values 
+    # (because PM25_2006 has duplicate date entries with the second value missing)
+    na.omit()
 
   # include timezone and lst/ldt offsets and convert dates to UTC
-  naps_data_long |>
+  fmtted_data <- naps_data_long |>
     get_site_tz_details(add = TRUE) |>
     dplyr::mutate(
       date_raw = date |>
@@ -62,10 +59,19 @@ format_naps_data <- function(naps_data_list) {
     dplyr::relocate(
       c("date_raw", "tz_local", "offset_local_standard", "offset_local_daylight", "date"),
       .before = "pollutant"
-    ) |> 
-    # pollutant, method_code, value -> `POLLUTANT_CODE`
+    ) |>
+    # pollutant, method_code, value -> `POLLUTANT`, `POLLUTANT_method_code`
     tidyr::pivot_wider(
-      names_from = c(pollutant, method_code),
+      names_from = pollutant,
       values_from = value
     )
+  if ("method_code" %in% colnames(fmtted_data)) {
+    pol <- naps_data_long$pollutant[1]
+    fmtted_data <- fmtted_data |>
+      dplyr::rename_with(
+        .cols = dplyr::any_of("method_code"),
+        .fn = ~ paste0("method_code_", pol)
+      )
+  }
+  return(fmtted_data)
 }
