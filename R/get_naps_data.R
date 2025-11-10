@@ -2,30 +2,9 @@ get_naps_data <- function(years, pollutants = c("PM25", "O3", "NO2")) {
   request_urls <- years |>
     make_naps_urls(pollutants = pollutants)
   request_urls |>
-    handyr::for_each(
-      \(url) {
-        handyr::on_error(
-          .return = NULL,
-          withr::with_options(
-            list(timeout = 6000),
-            {
-              local_file <- tempdir() |>
-                file.path(
-                  basename(url) |> sub(pattern = ".*%2F", replacement = "")
-                )
-              if (!file.exists(local_file)) {
-                download.file(url, local_file, method = "libcurl", quiet = TRUE)
-              }
-              read_naps_csv(local_file)
-            }
-          )
-        )
-      },
-      .as_list = TRUE
-    ) |>
-    stats::setNames(
-      file_paths |> basename() |> gsub(pattern = ".csv", replacement = "")
-    )
+    handyr::for_each(download_naps_csv, check_exists = TRUE, .as_list = TRUE) |>
+    unlist() |> # (this way names are correct and NULLs are dropped)
+    handyr::for_each(read_naps_csv, .as_list = TRUE, .show_progress = FALSE)
 }
 
 make_naps_urls <- function(
@@ -49,6 +28,33 @@ make_naps_urls <- function(
         paste0(pol_files)
     }) |>
     unlist()
+}
+
+download_naps_csv <- function(
+  csv_url,
+  data_dir = tempdir(),
+  check_exists = TRUE,
+  timeout = 6000
+) {
+  local_file <- data_dir |>
+    file.path(
+      basename(csv_url) |> sub(pattern = ".*%2F", replacement = "")
+    )
+  names(local_file) <- local_file |>
+    basename() |>
+    gsub(pattern = ".csv", replacement = "")
+  withr::with_options(
+    list(timeout = timeout),
+    {
+      if (!file.exists(local_file) | !check_exists) {
+        download.file(csv_url, local_file, method = "libcurl", quiet = TRUE)
+      }
+    }
+  )
+  if (!file.exists(local_file)) {
+    return(NULL)
+  }
+  return(local_file)
 }
 
 read_naps_csv <- function(csv_file) {
