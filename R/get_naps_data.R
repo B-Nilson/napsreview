@@ -1,15 +1,6 @@
 get_naps_data <- function(years, pollutants = c("PM25", "O3", "NO2")) {
-  base_url <- "https://data-donnees.az.ec.gc.ca/api/file"
-  archive_dir <- "/air/monitor/national-air-pollution-surveillance-naps-program/Data-Donnees/%YEAR%/ContinuousData-DonneesContinu/HourlyData-DonneesHoraires/"
-  file_paths <- years |>
-    lapply(\(year) {
-      archive_dir |>
-        stringr::str_replace("%YEAR%", as.character(year)) |>
-        paste0(pollutants, "_", year, ".csv")
-    }) |>
-    unlist()
-  request_urls <- base_url |>
-    paste0("?path=", file_paths |> stringr::str_replace_all("/", "%2F"))
+  request_urls <- years |>
+    make_naps_urls(pollutants = pollutants)
   request_urls |>
     handyr::for_each(
       \(url) {
@@ -35,6 +26,29 @@ get_naps_data <- function(years, pollutants = c("PM25", "O3", "NO2")) {
     stats::setNames(
       file_paths |> basename() |> gsub(pattern = ".csv", replacement = "")
     )
+}
+
+make_naps_urls <- function(
+  years = 1974:(as.numeric(format(Sys.Date(), "%Y")) - 1),
+  pollutants = c("CO", "NO2", "NO", "NOX", "O3", "PM25", "SO2")
+) {
+  # Define templates for each years directory and pollutants file
+  base_url <- "https://data-donnees.az.ec.gc.ca/api/file"
+  data_dir <- "/air/monitor/national-air-pollution-surveillance-naps-program/Data-Donnees"
+  continuous_dir <- "%s/ContinuousData-DonneesContinu/HourlyData-DonneesHoraires/" # %s = YEAR
+  dir_template <- "%s?path=%s/%s" |>
+    sprintf(base_url, data_dir, continuous_dir)
+  file_template <- "%s_%s.csv"
+
+  # Build urls for each pollutant file for each year
+  years |>
+    lapply(\(year) {
+      pol_files <- file_template |> sprintf(pollutants, year)
+      dir_template |>
+        sprintf(year) |>
+        paste0(pol_files)
+    }) |>
+    unlist()
 }
 
 read_naps_csv <- function(csv_file) {
