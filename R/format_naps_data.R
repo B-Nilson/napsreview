@@ -13,6 +13,32 @@ format_naps_data <- function(naps_data_list) {
     "value" # from H## columns
   )
 
+  # Handle case where header is EN only
+  has_en_only_headers <- !"NAPS ID//Identifiant SNPA" %in%
+    colnames(naps_data_list$data)
+  if (has_en_only_headers) {
+    desired_columns <- c(
+      site_id = "NAPSID",
+      prov_terr = "P/T",
+      city = "City",
+      lng = "Longitude",
+      lat = "Latitude",
+      date = "Date",
+      "hour_local", # from H## headers
+      pollutant = "Pollutant",
+      method_code = "Method",
+      "value" # from H## columns
+    )
+    naps_data_list$data <- naps_data_list$data |>
+      # H## -> H##/H##
+      dplyr::rename_with(
+        .cols = dplyr::starts_with("H"),
+        .fn = \(x) paste0(x, "//", x)
+      ) |>
+      # Fix date formatting
+      dplyr::mutate(Date = as.character(Date) |> lubridate::ymd())
+  }
+
   # Go from wide format to long and do some tidying
   value_unit <- naps_data_list$header$value[
     stringr::str_detect(naps_data_list$header$label, "Units")

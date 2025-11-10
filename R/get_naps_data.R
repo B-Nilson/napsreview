@@ -58,17 +58,39 @@ download_naps_csv <- function(
 }
 
 read_naps_csv <- function(csv_file) {
-  data_header_row <- readLines(csv_file, n = 10) |>
+  # Read in data as a vector of lines
+  csv_lines <- readLines(csv_file)
+
+  # Handle case where encoding is wrong
+  encoding_wrong <- csv_lines |>
+    paste(collapse = "\n") |>
+    stringr::str_detect("\xb5")
+  if (encoding_wrong) {
+    csv_lines <- readLines(csv_file, encoding = "latin1")
+  }
+
+  # Identify where obs. data starts
+  data_header_row <- csv_lines[1:20] |>
     stringr::str_which(pattern = "H\\d\\d?//H\\d\\d?")
-  header <- csv_file |>
-    readLines(n = data_header_row - 1) |>
-    stringr::str_split(pattern = ", ?", simplify = TRUE) |>
+  # Handle case where header is EN only
+  if (length(data_header_row) == 0) {
+    data_header_row <- readLines(csv_file, n = 10) |>
+      stringr::str_which(pattern = "H\\d\\d?,H\\d\\d?")
+  }
+
+  # Extract file info header
+  header_rows <- 1:(data_header_row - 1)
+  header <- csv_lines[header_rows] |>
+    stringr::str_split(pattern = ", ?|: ", simplify = TRUE) |>
     stats::setNames(c("label", "value")) |>
     dplyr::as_tibble() |>
     dplyr::select(label = V1, value = V2)
 
-  data <- readLines(csv_file)[-(1:(data_header_row - 1))] |>
+  # Extract obs. data
+  data <- csv_lines[-header_rows] |>
     paste(collapse = "\n") |>
     data.table::fread(keepLeadingZeros = TRUE)
+
+  # Return list with both
   list(header = header, data = data)
 }
