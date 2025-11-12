@@ -1,3 +1,80 @@
+test_that("city names are consistent", {
+  db_name <- "naps.duckdb"
+  db_path <- system.file("extdata", db_name, package = "napsreview")
+  db <- duckdb::duckdb() |>
+    DBI::dbConnect(db_path) |>
+    expect_no_error()
+
+  # TODO: get all problem files and entries for each
+  sites_with_multiple_cities <- db |>
+    dplyr::tbl("raw_data") |>
+    dplyr::select(
+      site_id = `NAPS ID//Identifiant SNPA`,
+      date = `Date//Date`,
+      city = `City//Ville`
+    ) |>
+    dplyr::group_by(site_id) |>
+    dplyr::distinct(city, .keep_all = TRUE) |>
+    dplyr::summarise(
+      cities = stringr::str_flatten(city, collapse = " | "),
+      sample_dates = stringr::str_flatten(date, collapse = " | ")
+    ) |>
+    dplyr::filter(stringr::str_detect(cities, "\\|")) |>
+    dplyr::collect()
+
+  expect_true(nrow(sites_with_multiple_cities) == 0)
+
+  clean_cities <- db |>
+    dplyr::tbl("raw_data") |>
+    dplyr::select(
+      name,
+      lat = `Latitude//Latitude`,
+      lng = `Longitude//Longitude`,
+      date = `Date//Date`,
+      prov_terr = `Province/Territory//Province/Territoire`,
+      city = `City//Ville`
+    ) |>
+    dplyr::distinct(prov_terr, city, .keep_all = TRUE) |>
+    dplyr::mutate(
+      city_clean = city |>
+        stringr::str_to_lower() |>
+        stringr::str_remove_all("[^a-z]") |>
+        stringr::str_remove("metrovan") |>
+        stringr::str_remove("ledorlans") |> # allows match of St-François-Île-D'orléans with Saint-François
+        stringr::str_replace_all("saint", "st")
+    ) |>
+    dplyr::collect()
+
+  get_similiar_cities <- function(cities, threshold = 0.2) {
+    if (length(cities) == 1) {
+      return("")
+    }
+    cities |>
+      stringdist::stringdistmatrix(cities, method = "jw") |>
+      apply(1, \(x) cities[x <= threshold] |> sort() |> paste(collapse = " | "))
+  }
+
+  cities_with_multiple_spellings <- clean_cities |>
+    dplyr::group_by(prov_terr) |>
+    dplyr::mutate(
+      similiar_cities = city_clean |>
+        get_similiar_cities(threshold = 0.1)
+    ) |>
+    dplyr::filter(
+      stringr::str_detect(similiar_cities, "\\|"),
+      similiar_cities != "hamilton | milton"
+    ) |>
+    dplyr::group_by(prov_terr, similiar_cities) |>
+    dplyr::summarise(
+      cities = stringr::str_flatten(city, collapse = " | "),
+      sample_dates = stringr::str_flatten(date, collapse = " | "),
+      .groups = "drop"
+    ) |>
+    dplyr::select(-similiar_cities)
+
+  expect_true(nrow(cities_with_multiple_spellings) == 0)
+})
+
 test_that("check for errors in PM25 data", {
   db_name <- "naps.duckdb"
   db_path <- system.file("extdata", db_name, package = "napsreview")
