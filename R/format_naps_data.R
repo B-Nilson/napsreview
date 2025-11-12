@@ -66,8 +66,8 @@ format_naps_data <- function(naps_data_list) {
         as.integer(),
       # set units using header
       value = value |> units::set_units(value_unit, mode = "standard")
-    ) |> 
-    # drop missing values 
+    ) |>
+    # drop missing values
     # (because PM25_2006 has duplicate date entries with the second value missing)
     na.omit()
 
@@ -87,7 +87,13 @@ format_naps_data <- function(naps_data_list) {
     ) |>
     dplyr::select(-hour_local) |>
     dplyr::relocate(
-      c("date_raw", "tz_local", "offset_local_standard", "offset_local_daylight", "date"),
+      c(
+        "date_raw",
+        "tz_local",
+        "offset_local_standard",
+        "offset_local_daylight",
+        "date"
+      ),
       .before = "pollutant"
     ) |>
     # pollutant, method_code, value -> `POLLUTANT`, `POLLUTANT_method_code`
