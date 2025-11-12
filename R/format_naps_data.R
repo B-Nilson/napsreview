@@ -54,6 +54,10 @@ format_naps_data <- function(naps_data_list) {
     dplyr::select(dplyr::any_of(desired_columns)) |>
     # cleanup
     dplyr::mutate(
+      # Ensure site_id is character and add 0 back to left side if needed
+      site_id = site_id |>
+        as.character() |>
+        stringr::str_pad(width = 6, side = "left", pad = "0"),
       # replace NA placeholder
       value = value |> handyr::swap(-999, NA),
       # strip out "H" from local hour (comes from the header) and convert to integer
