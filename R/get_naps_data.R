@@ -1,10 +1,26 @@
-get_naps_data <- function(years, pollutants = c("PM25", "O3", "NO2")) {
-  request_urls <- years |>
-    make_naps_urls(pollutants = pollutants)
-  request_urls |>
-    handyr::for_each(download_naps_csv, check_exists = TRUE, .as_list = TRUE) |>
-    unlist() |> # (this way names are correct and NULLs are dropped)
-    handyr::for_each(read_naps_csv, .as_list = TRUE, .show_progress = FALSE)
+get_naps_data <- function(
+  years,
+  pollutants = c("PM25", "O3", "NO2"),
+  raw_data_dir = tempdir(),
+  check_if_raw_exists = TRUE,
+  quiet = FALSE
+) {
+  handyr::log_step("Downloading NAPS files as needed.", quiet = quiet)
+  # Download each csv if not already downloaded (or if check_exists = FALSE)
+  local_files <- years |>
+    make_naps_urls(pollutants = pollutants) |>
+    handyr::for_each(
+      download_naps_csv,
+      data_dir = raw_data_dir,
+      check_exists = check_if_raw_exists,
+      .as_list = TRUE,
+      .show_progress = !quiet
+    ) |>
+    unlist() # (this way names are correct and NULLs are dropped)
+
+  handyr::log_step("Loading NAPS files.", quiet = quiet)
+  local_files |>
+    handyr::for_each(read_naps_csv, .as_list = TRUE, .show_progress = !quiet)
 }
 
 make_naps_urls <- function(
@@ -19,10 +35,24 @@ make_naps_urls <- function(
     sprintf(base_url, data_dir, continuous_dir)
   file_template <- "%s_%s.csv"
 
+  # Handle requests for PM2.5 prior to 1995
+  if (all(years < 1995) & all(pollutants == "PM25")) {
+    stop("PM2.5 data not available prior to 1995")
+  } else if (any(years < 1995) & "PM25" %in% pollutants) {
+    warning("PM2.5 data not available prior to 1995")
+  }
+
   # Build urls for each pollutant file for each year
   years |>
     lapply(\(year) {
-      pol_files <- file_template |> sprintf(pollutants, year)
+      pols <- pollutants
+      if (year < 1995) {
+        pols <- pollutants[pollutants != "PM25"]
+        if (length(pols) == 0) {
+          return(NULL)
+        }
+      }
+      pol_files <- file_template |> sprintf(pols, year)
       dir_template |>
         sprintf(year) |>
         paste0(pol_files)
@@ -82,15 +112,23 @@ read_naps_csv <- function(csv_file) {
   # Extract file info header
   header_rows <- 1:(data_header_row - 1)
   header <- csv_lines[header_rows] |>
-    stringr::str_split(pattern = ", ?|: ", simplify = TRUE) |>
-    stats::setNames(c("label", "value")) |>
-    dplyr::as_tibble() |>
+    stringr::str_split(pattern = ", ?|: ", simplify = TRUE)
+  colnames(header) <- paste0("V", seq_len(ncol(header)))
+  header <- dplyr::as_tibble(header) |>
     dplyr::select(label = V1, value = V2)
 
   # Extract obs. data
   data <- csv_lines[-header_rows] |>
     paste(collapse = "\n") |>
-    data.table::fread(keepLeadingZeros = TRUE)
+    data.table::fread(keepLeadingZeros = TRUE) |>
+    # Force site ID to be character in case loaded as integer
+    # (some files may not have leading 0's)
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::any_of(c("NAPSID", "NAPS ID//Identifiant SNPA")),
+        \(x) x |> as.character()
+      )
+    )
 
   # Return list with both
   list(header = header, data = data)
