@@ -28,11 +28,25 @@ test_that("city names are consistent", {
 
   # TODO: get all problem files and entries for each
   sites_with_multiple_cities <- db |>
-    dplyr::tbl("raw_data") |>
+    dplyr::tbl("raw_data_v2") |>
     dplyr::select(
       site_id = `NAPS ID//Identifiant SNPA`,
       date = `Date//Date`,
       city = `City//Ville`
+    ) |>
+    dplyr::union_all(
+      db |>
+        dplyr::tbl("raw_data_v1") |>
+        dplyr::select(
+          site_id = `NAPSID`,
+          date = `Date`,
+          city = `City`
+        ) |>
+        dplyr::mutate(
+          date = dbplyr::sql(
+            "CAST(STRPTIME(CAST(Date AS VARCHAR), '%Y%m%d') AS DATE)"
+          )
+        )
     ) |>
     dplyr::group_by(site_id) |>
     dplyr::distinct(city, .keep_all = TRUE) |>
@@ -46,14 +60,27 @@ test_that("city names are consistent", {
   expect_true(nrow(sites_with_multiple_cities) == 0)
 
   clean_cities <- db |>
-    dplyr::tbl("raw_data") |>
+    dplyr::tbl("raw_data_v2") |>
     dplyr::select(
       name,
-      lat = `Latitude//Latitude`,
-      lng = `Longitude//Longitude`,
       date = `Date//Date`,
       prov_terr = `Province/Territory//Province/Territoire`,
       city = `City//Ville`
+    ) |>
+    dplyr::union_all(
+      db |>
+        dplyr::tbl("raw_data_v1") |>
+        dplyr::select(
+          name,
+          date = `Date`,
+          prov_terr = `P/T`,
+          city = `City`
+        ) |>
+        dplyr::mutate(
+          date = dbplyr::sql(
+            "CAST(STRPTIME(CAST(Date AS VARCHAR), '%Y%m%d') AS DATE)"
+          )
+        )
     ) |>
     dplyr::distinct(prov_terr, city, .keep_all = TRUE) |>
     dplyr::mutate(
