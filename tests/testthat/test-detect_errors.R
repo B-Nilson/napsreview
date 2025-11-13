@@ -19,6 +19,125 @@ test_that("file formats are consistent", {
   (v2_rows > 0) |> expect_true()
 })
 
+test_that("values are within expected ranges", {
+  db_name <- "naps.duckdb"
+  db_path <- system.file("extdata", db_name, package = "napsreview")
+  db <- duckdb::duckdb() |>
+    DBI::dbConnect(db_path) |>
+    expect_no_error()
+
+  raw_data <- db |>
+    dplyr::tbl("raw_data_v2") |>
+    dplyr::select(
+      name,
+      row_number,
+      site_id = `NAPS ID//Identifiant SNPA`,
+      lat = `Latitude//Latitude`,
+      lng = `Longitude//Longitude`,
+      dplyr::starts_with("H")
+    ) |>
+    tidyr::pivot_longer(
+      dplyr::starts_with("H"),
+      names_to = "hour_local",
+      values_to = "value"
+    ) |>
+    dplyr::union_all(
+      db |>
+        dplyr::tbl("raw_data_v1") |>
+        dplyr::select(
+          name,
+          row_number,
+          site_id = `NAPSID`,
+          lat = `Latitude`,
+          lng = `Longitude`,
+          dplyr::starts_with("H")
+        ) |>
+        tidyr::pivot_longer(
+          dplyr::starts_with("H"),
+          names_to = "hour_local",
+          values_to = "value"
+        )
+    )
+
+  flagged_data <- raw_data |>
+    dplyr::filter(value != -999) |>
+    dplyr::mutate(
+      lat_in_canada = lat |> dplyr::between(41, 84),
+      lng_in_canada = lng |> dplyr::between(-142, -52),
+      value_above_0 = value > 0,
+      value_lt_2000 = value < 2000
+    )
+
+  bad_sites <- flagged_data |>
+    dplyr::group_by(name, site_id) |>
+    dplyr::summarise(
+      total = dplyr::n(),
+      dplyr::across(
+        c(lat_in_canada, lng_in_canada, value_above_0, value_lt_2000),
+        \(x) sum(x) / total
+      ),
+      .groups = "drop"
+    ) |>
+    dplyr::filter(
+      lat_in_canada < 1 |
+        lng_in_canada < 1 |
+        value_above_0 < 1 |
+        value_lt_2000 < 1
+    ) |>
+    dplyr::collect() |>
+    dplyr::mutate(
+      pollutant = stringr::str_extract(name, "^(.+)_\\d{4}", group = 1),
+      year = stringr::str_extract(name, "\\d{4}")
+    )
+
+  bad_files <- bad_sites |>
+    dplyr::group_by(
+      name,
+      bad_lat = lat_in_canada < 1,
+      bad_lng = lng_in_canada < 1,
+      bad_value_high = value_lt_2000 < 1,
+      bad_value_low = value_above_0 < 1
+    ) |>
+    dplyr::summarise(
+      site_ids = paste(site_id, collapse = ", "),
+      .groups = "drop"
+    )
+  if (nrow(dplyr::filter(bad_files, bad_lat)) > 0) {
+    problem_files <- bad_files |>
+      dplyr::filter(bad_lat) |>
+      dplyr::pull(name) |>
+      sort() |>
+      paste(collapse = ", ")
+    warning("The following files have bad latitude values: ", problem_files)
+  }
+  if (nrow(dplyr::filter(bad_files, bad_lng)) > 0) {
+    problem_files <- bad_files |>
+      dplyr::filter(bad_lng) |>
+      dplyr::pull(name) |>
+      sort() |>
+      paste(collapse = ", ")
+    warning("The following files have bad longitude values: ", problem_files)
+  }
+  if (nrow(dplyr::filter(bad_files, bad_value_low)) > 0) {
+    problem_files <- bad_files |>
+      dplyr::filter(bad_value_low) |>
+      dplyr::pull(name) |>
+      sort() |>
+      paste(collapse = ", ")
+    warning("The following files have negative concentrations: ", problem_files)
+  }
+  if (nrow(dplyr::filter(bad_files, bad_value_high)) > 0) {
+    problem_files <- bad_files |>
+      dplyr::filter(bad_value_high) |>
+      dplyr::pull(name) |>
+      sort() |>
+      paste(collapse = ", ")
+    warning("The following files have extreme (>2000) concentrations: ", problem_files)
+  }
+
+  expect_true(nrow(bad_sites) == 0)
+})
+
 test_that("city names are consistent", {
   db_name <- "naps.duckdb"
   db_path <- system.file("extdata", db_name, package = "napsreview")
