@@ -30,6 +30,41 @@ test_that("file formats are consistent", {
   (v2_rows > 0) |> expect_true()
 })
 
+test_that("only one value per site per hour", {
+  raw_data <- load_raw_archive_data(collect = FALSE)
+
+  multiple_value_hours <- raw_data |>
+    dplyr::filter(value != -999) |>
+    dplyr::count(name, site_id, date, hour_local) |>
+    dplyr::filter(n > 1) |>
+    dplyr::collect()
+
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("multiple_value_hours.csv")
+  if (nrow(multiple_value_hours) > 0) {
+    problem_files <- multiple_value_hours |>
+      dplyr::group_by(name) |>
+      dplyr::summarise(
+        sites = stringr::str_flatten(unique(site_id), collapse = ", ") |> 
+          paste0(")"),
+        .groups = "drop"
+      ) |>
+      tidyr::unite(col = "text", name, sites, sep = " (") |>
+      dplyr::pull(text) |>
+      sort() |>
+      paste(collapse = ", ")
+    warning(
+      "The following files (and sites) contain multiple non-'-999' values per site per hour: ",
+      problem_files
+    )
+    multiple_value_hours |>
+      data.table::fwrite(file = issues_file)
+  } else if (file.exists(issues_file)) {
+    file.remove(issues_file)
+  }
+  expect_true(nrow(multiple_value_hours) == 0)
+})
+
 test_that("values are within expected ranges", {
   raw_data <- load_raw_archive_data(collect = FALSE)
 
