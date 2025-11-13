@@ -13,7 +13,7 @@ format_naps_data <- function(naps_data_list) {
     "value" # from H## columns
   )
 
-  # Handle case where header is EN only
+  # Handle case where header is EN only ("v1" files)
   has_en_only_headers <- !"NAPS ID//Identifiant SNPA" %in%
     colnames(naps_data_list$data)
   if (has_en_only_headers) {
@@ -65,10 +65,22 @@ format_naps_data <- function(naps_data_list) {
         stringr::str_remove("H") |>
         as.integer(),
       # set units using header
-      value = value |> units::set_units(value_unit, mode = "standard")
+      value = value |> units::set_units(value_unit, mode = "standard"),
+      # Fix invalid lat/lng values
+      lng = dplyr::case_when(
+        lng < -142 | lng > -50 ~ NA_real_, # canada bounds
+        TRUE ~ lng
+      ),
+      lat = dplyr::case_when(
+        lat > 90 | lat < 41 ~ NA_real_, # canada bounds
+        TRUE ~ lat
+      ),
+      # Fix city name variations
+      city = fix_city_names(city)
     ) |>
     # drop missing values
     # (because PM25_2006 has duplicate date entries with the second value missing)
+    # (and site 064301 has -8148056 for longitude - converted to NA)
     na.omit()
 
   # include timezone and lst/ldt offsets and convert dates to UTC
@@ -110,4 +122,38 @@ format_naps_data <- function(naps_data_list) {
       )
   }
   return(fmtted_data)
+}
+
+fix_city_names <- function(cities) {
+  dplyr::case_when(
+    cities %in% c("Fort Mackay", "Fort Mckay") ~ "Fort McKay",
+    cities == "Fort St John" ~ "Fort St. John",
+    cities == "St Johns" ~ "St. John's",
+    cities == "Grand Falls - Windsor" ~ "Grand Falls-Windsor",
+    cities == "Fundy Nat. Park" ~ "Fundy National Park",
+    cities == "Saint Andrews" ~ "St. Andrews",
+    cities == "Quebec" ~ "Québec",
+    cities == "Trois Rivières" ~ "Trois-Rivières",
+    cities %in%
+      c(
+        "St. Zephirin-De-Courval",
+        "St-Zépherin-De-Courval"
+      ) ~ "Saint-Zéphirin-de-Courval",
+    cities %in%
+      c("Saint-Faustin-Lac-Carre", "Saint-Faustin-Lac-Carré") ~ "Mont-Blanc", # city was renamed in 2022
+    cities %in%
+      c(
+        "Ste-Cath-De-J-Cartier",
+        "Ste-Cath.-De-J-Cartier"
+      ) ~ "Sainte-Catherine-de-la-Jacques-Cartier",
+    cities %in% c("St-Francois", "St-François-Île-D'orléans", "Ste-Francoise") ~ "Saint-François",
+    cities == "Sault Ste Marie" ~ "Sault Ste. Marie",
+    cities == "Exp Lakes Area" ~ "Exp. Lakes Area",
+    cities == "Bitumont" ~ "Bitumount",
+    startsWith(cities, "Metro Van - ") ~ cities |>
+      stringr::str_remove("Metro Van - "),
+    startsWith(cities, "Metro Van-") ~ cities |>
+      stringr::str_remove("Metro Van-"),
+    TRUE ~ cities
+  )
 }
