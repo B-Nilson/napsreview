@@ -71,6 +71,7 @@ test_that("values are within expected ranges", {
   flagged_data <- raw_data |>
     dplyr::filter(value != -999) |>
     dplyr::mutate(
+      site_id_6_letters = nchar(site_id) == 6,
       lat_in_canada = lat |> dplyr::between(41, 84),
       lng_in_canada = lng |> dplyr::between(-142, -52),
       value_above_0 = value > 0,
@@ -82,13 +83,14 @@ test_that("values are within expected ranges", {
     dplyr::summarise(
       total = dplyr::n(),
       dplyr::across(
-        c(lat_in_canada, lng_in_canada, value_above_0, value_lt_2000),
+        c(site_id_6_letters, lat_in_canada, lng_in_canada, value_above_0, value_lt_2000),
         \(x) sum(x) / total
       ),
       .groups = "drop"
     ) |>
     dplyr::filter(
-      lat_in_canada < 1 |
+      site_id_6_letters < 1 |
+        lat_in_canada < 1 |
         lng_in_canada < 1 |
         value_above_0 < 1 |
         value_lt_2000 < 1
@@ -102,6 +104,7 @@ test_that("values are within expected ranges", {
   bad_files <- bad_sites |>
     dplyr::group_by(
       name,
+      bad_site_id = site_id_6_letters < 1,
       bad_lat = lat_in_canada < 1,
       bad_lng = lng_in_canada < 1,
       bad_value_high = value_lt_2000 < 1,
@@ -111,6 +114,14 @@ test_that("values are within expected ranges", {
       site_ids = paste(site_id, collapse = ", "),
       .groups = "drop"
     )
+  if (nrow(dplyr::filter(bad_files, bad_site_id)) > 0) {
+    problem_files <- bad_files |>
+      dplyr::filter(bad_site_id) |>
+      dplyr::pull(name) |>
+      sort() |>
+      paste(collapse = ", ")
+    warning("The following files have site IDs that are not 6 letters: ", problem_files)
+  }
   if (nrow(dplyr::filter(bad_files, bad_lat)) > 0) {
     problem_files <- bad_files |>
       dplyr::filter(bad_lat) |>
