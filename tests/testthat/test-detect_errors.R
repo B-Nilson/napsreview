@@ -1,3 +1,24 @@
+test_that("file formats are consistent", {
+  db_name <- "naps.duckdb"
+  db_path <- system.file("extdata", db_name, package = "napsreview")
+  db <- duckdb::duckdb() |>
+    DBI::dbConnect(db_path) |>
+    expect_no_error()
+
+  v1_rows <- db |> 
+    dplyr::tbl("raw_data_v1") |>
+    dplyr::count() |> 
+    dplyr::pull(n) |>
+    expect_no_error()
+  v2_rows <- db |> 
+    dplyr::tbl("raw_data_v2") |>
+    dplyr::count() |> 
+    dplyr::pull(n) |>
+    expect_no_error()
+  v1_rows |> expect_equal(0)
+  (v2_rows > 0) |> expect_true()
+})
+
 test_that("city names are consistent", {
   db_name <- "naps.duckdb"
   db_path <- system.file("extdata", db_name, package = "napsreview")
