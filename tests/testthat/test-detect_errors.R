@@ -31,44 +31,7 @@ test_that("file formats are consistent", {
 })
 
 test_that("values are within expected ranges", {
-  db_name <- "naps.duckdb"
-  db_path <- system.file("extdata", db_name, package = "napsreview")
-  db <- duckdb::duckdb() |>
-    DBI::dbConnect(db_path) |>
-    expect_no_error()
-
-  raw_data <- db |>
-    dplyr::tbl("raw_data_v2") |>
-    dplyr::select(
-      name,
-      row_number,
-      site_id = `NAPS ID//Identifiant SNPA`,
-      lat = `Latitude//Latitude`,
-      lng = `Longitude//Longitude`,
-      dplyr::starts_with("H")
-    ) |>
-    tidyr::pivot_longer(
-      dplyr::starts_with("H"),
-      names_to = "hour_local",
-      values_to = "value"
-    ) |>
-    dplyr::union_all(
-      db |>
-        dplyr::tbl("raw_data_v1") |>
-        dplyr::select(
-          name,
-          row_number,
-          site_id = `NAPSID`,
-          lat = `Latitude`,
-          lng = `Longitude`,
-          dplyr::starts_with("H")
-        ) |>
-        tidyr::pivot_longer(
-          dplyr::starts_with("H"),
-          names_to = "hour_local",
-          values_to = "value"
-        )
-    )
+  raw_data <- load_raw_archive_data(collect = FALSE)
 
   flagged_data <- raw_data |>
     dplyr::filter(value != -999) |>
