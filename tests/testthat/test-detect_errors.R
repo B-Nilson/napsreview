@@ -1,3 +1,4 @@
+# Note: The file format changed after 2004, this should be rectified or at least acknowledged
 test_that("file formats are consistent", {
   db_name <- "naps.duckdb"
   db_path <- system.file("extdata", db_name, package = "napsreview")
@@ -5,14 +6,24 @@ test_that("file formats are consistent", {
     DBI::dbConnect(db_path) |>
     expect_no_error()
 
-  v1_rows <- db |> 
+  v1_rows <- db |>
     dplyr::tbl("raw_data_v1") |>
-    dplyr::count() |> 
+    dplyr::count() |>
     dplyr::pull(n) |>
     expect_no_error()
-  v2_rows <- db |> 
+  if (v1_rows > 0) {
+    problem_files <- db |>
+      dplyr::tbl("raw_data_v1") |>
+      dplyr::distinct(name) |>
+      dplyr::pull(name) |>
+      sort() |>
+      paste(collapse = ", ")
+    warning("The following files do not have `EN//FR` headers: ", problem_files)
+  }
+
+  v2_rows <- db |>
     dplyr::tbl("raw_data_v2") |>
-    dplyr::count() |> 
+    dplyr::count() |>
     dplyr::pull(n) |>
     expect_no_error()
   v1_rows |> expect_equal(0)
