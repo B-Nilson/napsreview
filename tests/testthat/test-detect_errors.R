@@ -112,6 +112,54 @@ test_that("values are within expected ranges", {
   expect_true(nrow(bad_sites) == 0)
 })
 
+test_that("site coordinates are consistent", {
+  raw_data <- load_raw_archive_data(collect = FALSE)
+
+  multiple_loc_sites <- raw_data |>
+    dplyr::group_by(site_id, lat, lng) |>
+    dplyr::distinct(name) |>
+    dplyr::summarise(
+      files = stringr::str_flatten(name, collapse = ", "),
+      .groups = "drop"
+    ) |>
+    dplyr::filter(dplyr::n() > 1, .by = site_id) |>
+    dplyr::collect()
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("multiple_loc_sites.csv")
+  if (nrow(multiple_loc_sites) > 0) {
+    warning(
+      "The following sites have multiple lat/lng coordinates across files: ",
+      multiple_loc_sites$site_id |> unique() |> sort() |> paste(collapse = ", ")
+    )
+    multiple_loc_sites |>
+      data.table::fwrite(file = issues_file)
+  } else if (file.exists(issues_file)) {
+    file.remove(issues_file)
+  }
+
+  multiple_loc_sites_within_files <- raw_data |>
+    dplyr::distinct(name, site_id, lat, lng) |>
+    dplyr::group_by(name, site_id) |>
+    dplyr::count() |>
+    dplyr::filter(n > 1) |>
+    dplyr::collect()
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("multiple_loc_sites_within_files.csv")
+  if (nrow(multiple_loc_sites_within_files) > 0) {
+    warning(
+      "The following files have multiple lat/lng coordinates for the same site per file: ",
+      multiple_loc_sites_within_files$site_id |>
+        unique() |>
+        sort() |>
+        paste(collapse = ", ")
+    )
+    multiple_loc_sites_within_files |>
+      data.table::fwrite(file = issues_file)
+  } else if (file.exists(issues_file)) {
+    file.remove(issues_file)
+  }
+})
+
 test_that("city names are consistent", {
   db_name <- "naps.duckdb"
   db_path <- system.file("extdata", db_name, package = "napsreview")
