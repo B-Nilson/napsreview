@@ -12,6 +12,7 @@ load_raw_archive_data <- function(collect = FALSE) {
       site_id = `NAPS ID//Identifiant SNPA`,
       lat = `Latitude//Latitude`,
       lng = `Longitude//Longitude`,
+      date = `Date//Date`,
       dplyr::starts_with("H")
     ) |>
     tidyr::pivot_longer(
@@ -28,8 +29,14 @@ load_raw_archive_data <- function(collect = FALSE) {
       site_id = `NAPSID`,
       lat = `Latitude`,
       lng = `Longitude`,
+      date = `Date`,
       dplyr::starts_with("H")
     ) |>
+    dplyr::mutate(
+      date = dbplyr::sql(
+        "CAST(STRPTIME(CAST(Date AS VARCHAR), '%Y%m%d') AS DATE)"
+      )
+    ) |> 
     tidyr::pivot_longer(
       dplyr::starts_with("H"),
       names_to = "hour_local",
