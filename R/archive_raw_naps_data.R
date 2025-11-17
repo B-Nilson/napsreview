@@ -97,6 +97,16 @@ archive_raw_naps_data <- function(
       update_duplicates = FALSE,
       use_on_conflict = TRUE
     )
+  
+  # Add indices if not already existing
+  db |>
+    DBI::dbExecute("CREATE INDEX IF NOT EXISTS raw_data_v1_site_id ON raw_data_v1 (NAPSID);")
+  db |>
+    DBI::dbExecute('CREATE INDEX IF NOT EXISTS raw_data_v2_site_id ON raw_data_v2 ("NAPS ID//Identifiant SNPA");')
+  db |>
+    DBI::dbExecute('CREATE INDEX IF NOT EXISTS raw_data_v1_date ON raw_data_v1 (Date)')
+  db |>
+    DBI::dbExecute('CREATE INDEX IF NOT EXISTS raw_data_v2_date ON raw_data_v2 ("Date//Date")')
 
   invisible(db)
 }
