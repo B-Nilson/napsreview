@@ -52,36 +52,28 @@ format_naps_data <- function(naps_data_list) {
     ) |>
     # rename and reorder columns
     dplyr::select(dplyr::any_of(desired_columns)) |>
+    # Drop missing or invalid values
+    dplyr::filter(
+      !is.na(value) & value != -999 & value >= 0,
+      # canada bounds
+      lng < -142 | lng > -50,
+      lat > 90 | lat < 41
+    ) |>
     # cleanup
     dplyr::mutate(
       # Ensure site_id is character and add 0 back to left side if needed
       site_id = site_id |>
         as.character() |>
         stringr::str_pad(width = 6, side = "left", pad = "0"),
-      # replace NA placeholder
-      value = value |> handyr::swap(-999, NA),
       # strip out "H" from local hour (comes from the header) and convert to integer
       hour_local = stringr::str_split(hour_local, "//", simplify = TRUE)[, 1] |>
         stringr::str_remove("H") |>
         as.integer(),
       # set units using header
       value = value |> units::set_units(value_unit, mode = "standard"),
-      # Fix invalid lat/lng values
-      lng = dplyr::case_when(
-        lng < -142 | lng > -50 ~ NA_real_, # canada bounds
-        TRUE ~ lng
-      ),
-      lat = dplyr::case_when(
-        lat > 90 | lat < 41 ~ NA_real_, # canada bounds
-        TRUE ~ lat
-      ),
       # Fix city name variations
       city = fix_city_names(city)
-    ) |>
-    # drop missing values
-    # (because PM25_2006 has duplicate date entries with the second value missing)
-    # (and site 064301 has -8148056 for longitude - converted to NA)
-    na.omit()
+    )
 
   # include timezone and lst/ldt offsets and convert dates to UTC
   fmtted_data <- naps_data_long |>
