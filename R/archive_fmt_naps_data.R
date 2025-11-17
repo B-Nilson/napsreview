@@ -39,7 +39,7 @@ archive_fmt_naps_data <- function(
     stringr::str_subset("method_code_")
   db |>
     handyr::write_to_database(
-      table_name = "fmt_data",
+      table_name = fmt_data_tbl,
       new_data = fmtted_obs,
       primary_keys = c("site_id", "date", method_code_cols),
       insert_new = TRUE,
@@ -50,7 +50,7 @@ archive_fmt_naps_data <- function(
   # Write site meta data to seperate table
   db |>
     handyr::write_to_database(
-      table_name = "meta",
+      table_name = fmt_meta_tbl,
       new_data = fmtted_meta,
       primary_keys = c(
         "years",
