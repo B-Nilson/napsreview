@@ -56,8 +56,8 @@ format_naps_data <- function(naps_data_list) {
     dplyr::filter(
       !is.na(value) & value != -999 & value >= 0,
       # canada bounds
-      lng < -142 | lng > -50,
-      lat > 90 | lat < 41
+      lng > -142 & lng < -50,
+      lat < 90 & lat > 41
     ) |>
     # cleanup
     dplyr::mutate(
