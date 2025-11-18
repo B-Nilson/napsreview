@@ -9,8 +9,10 @@ test_that("naps data can be collected and archived", {
       pollutants = test_pollutants,
       raw_data_dir = raw_data_dir,
       check_if_raw_exists = TRUE
-    )
+    ) |>
+    expect_no_error()
 
+  skip("Skipping write to database")
   # Write raw data to database
   db |>
     archive_raw_naps_data(

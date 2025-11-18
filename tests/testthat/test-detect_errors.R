@@ -45,7 +45,7 @@ test_that("only one value per site per hour", {
     problem_files <- multiple_value_hours |>
       dplyr::group_by(name) |>
       dplyr::summarise(
-        sites = stringr::str_flatten(unique(site_id), collapse = ", ") |> 
+        sites = stringr::str_flatten(unique(site_id), collapse = ", ") |>
           paste0(")"),
         .groups = "drop"
       ) |>
@@ -83,7 +83,13 @@ test_that("values are within expected ranges", {
     dplyr::summarise(
       total = dplyr::n(),
       dplyr::across(
-        c(site_id_6_letters, lat_in_canada, lng_in_canada, value_above_0, value_lt_2000),
+        c(
+          site_id_6_letters,
+          lat_in_canada,
+          lng_in_canada,
+          value_above_0,
+          value_lt_2000
+        ),
         \(x) sum(x) / total
       ),
       .groups = "drop"
@@ -120,7 +126,10 @@ test_that("values are within expected ranges", {
       dplyr::pull(name) |>
       sort() |>
       paste(collapse = ", ")
-    warning("The following files have site IDs that are not 6 letters: ", problem_files)
+    warning(
+      "The following files have site IDs that are not 6 letters: ",
+      problem_files
+    )
   }
   if (nrow(dplyr::filter(bad_files, bad_lat)) > 0) {
     problem_files <- bad_files |>
@@ -152,7 +161,10 @@ test_that("values are within expected ranges", {
       dplyr::pull(name) |>
       sort() |>
       paste(collapse = ", ")
-    warning("The following files have extreme (>2000) concentrations: ", problem_files)
+    warning(
+      "The following files have extreme (>2000) concentrations: ",
+      problem_files
+    )
   }
 
   expect_true(nrow(bad_sites) == 0)

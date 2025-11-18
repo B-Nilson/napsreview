@@ -33,7 +33,7 @@ load_raw_archive_data <- function(collect = FALSE) {
       date = dbplyr::sql(
         "CAST(STRPTIME(CAST(Date AS VARCHAR), '%Y%m%d') AS DATE)"
       )
-    ) |> 
+    ) |>
     tidyr::pivot_longer(
       dplyr::starts_with("H"),
       names_to = "hour_local",

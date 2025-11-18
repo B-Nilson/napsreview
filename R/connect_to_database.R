@@ -6,7 +6,7 @@ connect_to_database <- function(
   if (!file.exists(db_path) & create_if_needed) {
     basename(db_path) |>
       handyr::create_database(path = dirname(db_path))
-  }else {
+  } else {
     duckdb::duckdb() |>
       DBI::dbConnect(db_path)
   }

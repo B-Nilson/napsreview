@@ -55,7 +55,7 @@ archive_raw_naps_data <- function(
     handyr::write_to_database(
       table_name = raw_data_tbl |> paste0("_v1"),
       new_data = raw_data_v1 |>
-        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |> 
+        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
         dplyr::relocate(row_number, .after = name),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
@@ -66,7 +66,7 @@ archive_raw_naps_data <- function(
     handyr::write_to_database(
       table_name = raw_data_tbl |> paste0("_v2"),
       new_data = raw_data_v2 |>
-        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |> 
+        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
         dplyr::relocate(row_number, .after = name),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
@@ -79,7 +79,7 @@ archive_raw_naps_data <- function(
     handyr::write_to_database(
       table_name = raw_headers_tbl |> paste0("_v1"),
       new_data = raw_headers_v1 |>
-        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |> 
+        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
         dplyr::relocate(row_number, .after = name),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
@@ -90,23 +90,31 @@ archive_raw_naps_data <- function(
     handyr::write_to_database(
       table_name = raw_headers_tbl |> paste0("_v2"),
       new_data = raw_headers_v2 |>
-        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |> 
+        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
         dplyr::relocate(row_number, .after = name),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
       update_duplicates = FALSE,
       use_on_conflict = TRUE
     )
-  
+
   # Add indices if not already existing
   db |>
-    DBI::dbExecute("CREATE INDEX IF NOT EXISTS raw_data_v1_site_id ON raw_data_v1 (NAPSID);")
+    DBI::dbExecute(
+      "CREATE INDEX IF NOT EXISTS raw_data_v1_site_id ON raw_data_v1 (NAPSID);"
+    )
   db |>
-    DBI::dbExecute('CREATE INDEX IF NOT EXISTS raw_data_v2_site_id ON raw_data_v2 ("NAPS ID//Identifiant SNPA");')
+    DBI::dbExecute(
+      'CREATE INDEX IF NOT EXISTS raw_data_v2_site_id ON raw_data_v2 ("NAPS ID//Identifiant SNPA");'
+    )
   db |>
-    DBI::dbExecute('CREATE INDEX IF NOT EXISTS raw_data_v1_date ON raw_data_v1 (Date)')
+    DBI::dbExecute(
+      'CREATE INDEX IF NOT EXISTS raw_data_v1_date ON raw_data_v1 (Date)'
+    )
   db |>
-    DBI::dbExecute('CREATE INDEX IF NOT EXISTS raw_data_v2_date ON raw_data_v2 ("Date//Date")')
+    DBI::dbExecute(
+      'CREATE INDEX IF NOT EXISTS raw_data_v2_date ON raw_data_v2 ("Date//Date")'
+    )
 
   invisible(db)
 }

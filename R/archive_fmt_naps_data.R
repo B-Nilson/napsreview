@@ -23,7 +23,7 @@ archive_fmt_naps_data <- function(
     dplyr::mutate(dplyr::across(dplyr::starts_with("method_code_"), \(x) {
       handyr::swap(x, what = NA, with = -999)
     }))
-  
+
   fmtted_meta <- fmtted_data |>
     handyr::for_each(\(x) x$meta, .bind = TRUE, .show_progress = FALSE) |>
     dplyr::mutate(dplyr::across(dplyr::starts_with("method_code_"), \(x) {

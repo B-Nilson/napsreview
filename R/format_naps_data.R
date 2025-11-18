@@ -85,7 +85,7 @@ format_naps_data <- function(naps_data_list) {
       date = date |>
         format("%F") |>
         paste(hour_local - 1) |> # hours are 1 - 24, convert to 0-23
-        lubridate::ymd_h(tz = "UTC") - # set to UTC date (actually LST, fix next line)
+        lubridate::ymd_h(tz = "UTC") - # convert to date, pretend already UTC (manually adjust from LST below)
         lubridate::minutes(round(offset_local_standard, digits = 1) * 60) + # LST -> UTC
         lubridate::hours(1) # fix 1-24 -> 0-23 conversion earlier
     ) |>
@@ -138,7 +138,12 @@ fix_city_names <- function(cities) {
         "Ste-Cath-De-J-Cartier",
         "Ste-Cath.-De-J-Cartier"
       ) ~ "Sainte-Catherine-de-la-Jacques-Cartier",
-    cities %in% c("St-Francois", "St-François-Île-D'orléans", "Ste-Francoise") ~ "Saint-François",
+    cities %in%
+      c(
+        "St-Francois",
+        "St-François-Île-D'orléans",
+        "Ste-Francoise"
+      ) ~ "Saint-François",
     cities == "Sault Ste Marie" ~ "Sault Ste. Marie",
     cities == "Exp Lakes Area" ~ "Exp. Lakes Area",
     cities == "Bitumont" ~ "Bitumount",
