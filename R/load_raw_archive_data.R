@@ -1,8 +1,5 @@
 load_raw_archive_data <- function(collect = FALSE) {
-  db_name <- "naps.duckdb"
-  db_path <- system.file("extdata", db_name, package = "napsreview")
-  db <- duckdb::duckdb() |>
-    DBI::dbConnect(db_path)
+  db <- connect_to_database()
 
   v2_data <- db |>
     dplyr::tbl("raw_data_v2") |>

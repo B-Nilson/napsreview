@@ -1,19 +1,6 @@
 test_that("naps data can be collected and archived", {
-  skip("Slow test, downloads large files")
-  db_name <- "naps.duckdb"
-  db_path <- system.file("extdata", package = "napsreview") |>
-    file.path(db_name)
   raw_data_dir <- system.file("extdata/naps_raw", package = "napsreview")
-
-  if (!file.exists(db_path)) {
-    db <- basename(db_path) |>
-      handyr::create_database(path = dirname(db_path)) |>
-      expect_no_error()
-  } else {
-    db <- duckdb::duckdb() |>
-      DBI::dbConnect(db_path) |>
-      expect_no_error()
-  }
+  db <- connect_to_database()
 
   test_years <- 1974:2023
   test_pollutants <- c("PM25", "O3", "NO2")
