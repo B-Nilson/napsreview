@@ -1,10 +1,6 @@
 # Note: The file format changed after 2004, this should be rectified or at least acknowledged
 test_that("file formats are consistent", {
-  db_name <- "naps.duckdb"
-  db_path <- system.file("extdata", db_name, package = "napsreview")
-  db <- duckdb::duckdb() |>
-    DBI::dbConnect(db_path) |>
-    expect_no_error()
+  db <- connect_to_database()
 
   v1_rows <- db |>
     dplyr::tbl("raw_data_v1") |>
@@ -219,11 +215,7 @@ test_that("site coordinates are consistent", {
 })
 
 test_that("city names are consistent", {
-  db_name <- "naps.duckdb"
-  db_path <- system.file("extdata", db_name, package = "napsreview")
-  db <- duckdb::duckdb() |>
-    DBI::dbConnect(db_path) |>
-    expect_no_error()
+  db <- connect_to_database()
 
   # TODO: get all problem files and entries for each
   sites_with_multiple_cities <- db |>
@@ -323,13 +315,7 @@ test_that("city names are consistent", {
 })
 
 test_that("check for errors in PM25 data", {
-  db_name <- "naps.duckdb"
-  db_path <- system.file("extdata", db_name, package = "napsreview")
-
-  db <- duckdb::duckdb() |>
-    DBI::dbConnect(db_path) |>
-    expect_no_error()
-
+  db <- connect_to_database()
   total_rows <- db |> dplyr::tbl("PM25") |> dplyr::tally() |> dplyr::pull(n)
 
   # find/count negative values
