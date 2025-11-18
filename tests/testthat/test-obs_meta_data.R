@@ -1,6 +1,11 @@
-test_that("site coordinates are consistent", {
+test_that("site coordinates are consistent across files", {
+  # Setup
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("multiple_loc_sites.csv")
   raw_data <- load_raw_archive_data(collect = FALSE)
+  on.exit(DBI::dbDisconnect(raw_data$src$con))
 
+  # Load any failed sites
   multiple_loc_sites <- raw_data |>
     dplyr::group_by(site_id, lat, lng) |>
     dplyr::distinct(name) |>
@@ -10,8 +15,8 @@ test_that("site coordinates are consistent", {
     ) |>
     dplyr::filter(dplyr::n() > 1, .by = site_id) |>
     dplyr::collect()
-  issues_file <- system.file("extdata/issues", package = "napsreview") |>
-    file.path("multiple_loc_sites.csv")
+
+  # Warn if there are any, and save to file (or old remove file if no issues)
   if (nrow(multiple_loc_sites) > 0) {
     warning(
       "The following sites have multiple lat/lng coordinates across files: ",
@@ -23,14 +28,26 @@ test_that("site coordinates are consistent", {
     file.remove(issues_file)
   }
 
+  # Test for no issues
+  expect_true(nrow(multiple_loc_sites) == 0)
+})
+
+test_that("site coordinates are consistent within files", {
+  # Setup
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("multiple_loc_sites_within_files.csv")
+  raw_data <- load_raw_archive_data(collect = FALSE)
+  on.exit(DBI::dbDisconnect(raw_data$src$con))
+
+  # Load any failed files/sites
   multiple_loc_sites_within_files <- raw_data |>
     dplyr::distinct(name, site_id, lat, lng) |>
     dplyr::group_by(name, site_id) |>
     dplyr::count() |>
     dplyr::filter(n > 1) |>
     dplyr::collect()
-  issues_file <- system.file("extdata/issues", package = "napsreview") |>
-    file.path("multiple_loc_sites_within_files.csv")
+
+  # Warn if there are any, and save to file (or old remove file if no issues)
   if (nrow(multiple_loc_sites_within_files) > 0) {
     warning(
       "The following files have multiple lat/lng coordinates for the same site per file: ",
@@ -44,6 +61,9 @@ test_that("site coordinates are consistent", {
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
   }
+
+  # Test for no issues
+  expect_true(nrow(multiple_loc_sites_within_files) == 0)
 })
 
 test_that("city names are consistent", {
