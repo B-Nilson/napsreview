@@ -107,23 +107,14 @@ test_that("city names are consistently spelled", {
   raw_data <- load_raw_archive_data(collect = FALSE)
   on.exit(DBI::dbDisconnect(raw_data$src$con))
 
-  clean_cities <- raw_data |>
-    dplyr::select(name, date, prov_terr, city) |>
-    dplyr::distinct(prov_terr, city, .keep_all = TRUE) |>
-    dplyr::mutate(
-      city_clean = city |>
-        stringr::str_to_lower() |>
-        stringr::str_remove_all("[^a-z]") |>
-        stringr::str_remove("metrovan") |>
-        stringr::str_remove("ledorlans") |> # allows match of St-François-Île-D'orléans with Saint-François
-        stringr::str_replace_all("saint", "st")
-    ) |>
+  unique_cities <- raw_data |>
+    dplyr::distinct(prov_terr, city) |>
     dplyr::collect()
 
-  cities_with_multiple_spellings <- clean_cities |>
+  cities_with_multiple_spellings <- unique_cities |>
     dplyr::group_by(prov_terr) |>
     dplyr::mutate(
-      similiar_cities = city_clean |>
+      similiar_cities = city |>
         get_similiar_cities(threshold = 0.1)
     ) |>
     dplyr::filter(
@@ -133,7 +124,6 @@ test_that("city names are consistently spelled", {
     dplyr::group_by(prov_terr, similiar_cities) |>
     dplyr::summarise(
       cities = stringr::str_flatten(city, collapse = " | "),
-      sample_dates = stringr::str_flatten(date, collapse = " | "),
       .groups = "drop"
     ) |>
     dplyr::select(-similiar_cities)
