@@ -169,7 +169,8 @@ check_date_alignment <- function(
                     value_cols[2]
                   )
                 ),
-                page_width = 7
+                page_width = 7,
+                taller = 3
               )
             }
           )

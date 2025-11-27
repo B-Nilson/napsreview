@@ -1,7 +1,7 @@
 make_cor_plot <- function(site_data, value_cols, name_cols, site_id) {
   plot_data <- site_data |>
     dplyr::group_by(
-      dplyr::pick(name_cols),
+      dplyr::pick(dplyr::all_of(name_cols)),
       date = lubridate::floor_date(.data$date, unit = "months")
     ) |>
     dplyr::summarise(
@@ -18,13 +18,14 @@ make_cor_plot <- function(site_data, value_cols, name_cols, site_id) {
       names_from = name_cols[2],
       values_from = "cor"
     ) |>
-    dplyr::filter(dplyr::pick(name_cols[1]) == value_cols[1])
+    dplyr::filter(dplyr::pick(dplyr::all_of(name_cols[1])) == value_cols[1]) |> 
+    dplyr::mutate(label = round(unlist(dplyr::pick(dplyr::all_of(value_cols[2]))), 2))
 
   plot_data |>
     airquality::tile_plot(
       y = "year",
       x = "month",
-      z = "pm25_naps",
+      z = value_cols[2],
       FUN = mean,
       date_col = "date"
     ) +
@@ -33,7 +34,7 @@ make_cor_plot <- function(site_data, value_cols, name_cols, site_id) {
       ggplot2::aes(
         x = factor(lubridate::month(date), labels = month.abb),
         y = factor(lubridate::year(date)),
-        label = round(pm25_naps, 2)
+        label = label
       )
     ) +
     ggplot2::labs(
