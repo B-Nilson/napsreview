@@ -67,6 +67,8 @@ test_that("site coordinates are consistent within files", {
 })
 
 test_that("city names are consistent for each site", {
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("multiple_city_sites.csv")
   raw_data <- load_raw_archive_data(collect = FALSE)
   on.exit(DBI::dbDisconnect(raw_data$src$con))
 
@@ -81,10 +83,27 @@ test_that("city names are consistent for each site", {
     dplyr::filter(n_cities > 1) |>
     dplyr::collect()
 
+  # Warn if there are any, and save to file (or old remove file if no issues)
+  if (nrow(sites_with_multiple_cities) > 0) {
+    warning(
+      "The following sites have multiple city names across files: ",
+      sites_with_multiple_cities$site_id |>
+        unique() |>
+        sort() |>
+        paste(collapse = ", ")
+    )
+    sites_with_multiple_cities |>
+      data.table::fwrite(file = issues_file)
+  } else if (file.exists(issues_file)) {
+    file.remove(issues_file)
+  }
+
   expect_true(nrow(sites_with_multiple_cities) == 0)
 })
 
-test_that("city names are consistently spelled", {
+test_that("city names are consistently spelled", {  
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("multiple_city_spellings.csv")
   raw_data <- load_raw_archive_data(collect = FALSE)
   on.exit(DBI::dbDisconnect(raw_data$src$con))
 
@@ -118,6 +137,19 @@ test_that("city names are consistently spelled", {
       .groups = "drop"
     ) |>
     dplyr::select(-similiar_cities)
+
+  # Warn if there are any, and save to file (or old remove file if no issues)
+  if (nrow(cities_with_multiple_spellings) > 0) {
+    warning(
+      "The following cities have multiple spellings across files: ",
+      cities_with_multiple_spellings$cities |>
+        sort() |>
+        paste(collapse = ", ")
+    )
+    cities_with_multiple_spellings |> write.csv(file = issues_file, row.names = FALSE)
+  } else if (file.exists(issues_file)) {
+    file.remove(issues_file)
+  }
 
   expect_true(nrow(cities_with_multiple_spellings) == 0)
 })

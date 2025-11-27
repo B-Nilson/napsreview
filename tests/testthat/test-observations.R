@@ -90,6 +90,16 @@ test_that("values are within expected ranges", {
       site_ids = paste(site_id, collapse = ", "),
       .groups = "drop"
     )
+  
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("invalid_values.csv") 
+  if (nrow(bad_files) > 0) {
+    bad_files |> 
+      dplyr::rename(file_name = name) |>
+      write.csv(file = issues_file, row.names = FALSE)
+  }else if (file.exists(issues_file)) {
+    file.remove(issues_file)
+  }
   if (nrow(dplyr::filter(bad_files, bad_site_id)) > 0) {
     problem_files <- bad_files |>
       dplyr::filter(bad_site_id) |>
