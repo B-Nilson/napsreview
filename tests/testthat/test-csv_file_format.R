@@ -5,6 +5,8 @@
 # - new files have slighlty different pre-data header format
 # - new files have a different date format
 test_that("file formats are consistent", {
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("old_format_files.csv")
   db <- connect_to_database()
   on.exit(DBI::dbDisconnect(db))
 
@@ -18,9 +20,15 @@ test_that("file formats are consistent", {
       dplyr::tbl("raw_data_v1") |>
       dplyr::distinct(name) |>
       dplyr::pull(name) |>
-      sort() |>
-      paste(collapse = ", ")
-    warning("The following files do not have `EN//FR` headers: ", problem_files)
+      sort()
+    warning(
+      "The following files do not have `EN//FR` headers: ",
+      problem_files |> paste(collapse = ", ")
+    )
+    data.frame(file_name = problem_files) |>
+      write.csv(file = issues_file, row.names = FALSE)
+  } else if (file.exists(issues_file)) {
+    file.remove(issues_file)
   }
 
   v2_rows <- db |>
