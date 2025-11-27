@@ -115,6 +115,14 @@ archive_raw_naps_data <- function(
     DBI::dbExecute(
       'CREATE INDEX IF NOT EXISTS raw_data_v2_date ON raw_data_v2 ("Date//Date")'
     )
+  db |>
+    DBI::dbExecute(
+      'CREATE INDEX IF NOT EXISTS raw_data_v1_city ON raw_data_v1 (City)'
+    )
+  db |>
+    DBI::dbExecute(
+      'CREATE INDEX IF NOT EXISTS raw_data_v2_city ON raw_data_v2 ("City//Ville")'
+    )
 
   invisible(db)
 }
