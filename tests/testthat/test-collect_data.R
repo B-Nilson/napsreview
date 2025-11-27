@@ -13,20 +13,28 @@ test_that("naps data can be collected and archived", {
     ) |>
     expect_no_error()
 
-  skip("Skipping write to database")
   # Write raw data to database
-  db |>
-    archive_raw_naps_data(
-      naps_data = naps_data,
-      raw_data_tbl = "raw_data",
-      raw_headers_tbl = "raw_data_headers"
-    )
+  if (
+    !DBI::dbExistsTable(db, "raw_data_v1") |
+      !DBI::dbExistsTable(db, "raw_data_v2")
+  ) {
+    db |>
+      archive_raw_naps_data(
+        naps_data = naps_data,
+        raw_data_tbl = "raw_data",
+        raw_headers_tbl = "raw_data_headers"
+      ) |>
+      expect_no_error()
+  }
 
-  # Format and write out remaining data
-  db |>
-    archive_fmt_naps_data(
-      naps_data = naps_data,
-      fmt_data_tbl = "fmt_data",
-      fmt_meta_tbl = "fmt_meta"
-    )
+  # Format data and write to database
+  if (!DBI::dbExistsTable(db, "fmt_data")) {
+    db |>
+      archive_fmt_naps_data(
+        naps_data = naps_data,
+        fmt_data_tbl = "fmt_data",
+        fmt_meta_tbl = "fmt_meta"
+      ) |>
+      expect_no_error()
+  }
 })
