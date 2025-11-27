@@ -80,11 +80,10 @@ test_that("values are within expected ranges", {
   bad_files <- bad_sites |>
     dplyr::group_by(
       name,
-      bad_site_id = site_id_6_letters < 1,
-      bad_lat = lat_in_canada < 1,
-      bad_lng = lng_in_canada < 1,
-      bad_value_high = value_lt_2000 < 1,
-      bad_value_low = value_above_0 < 1
+      has_bad_site_id = site_id_6_letters < 1,
+      has_bad_lat_or_lng = lat_in_canada < 1 | lng_in_canada < 1,
+      has_values_above_2000 = value_lt_2000 < 1,
+      has_negatives = value_above_0 < 1
     ) |>
     dplyr::summarise(
       site_ids = paste(site_id, collapse = ", "),
@@ -100,9 +99,10 @@ test_that("values are within expected ranges", {
   }else if (file.exists(issues_file)) {
     file.remove(issues_file)
   }
-  if (nrow(dplyr::filter(bad_files, bad_site_id)) > 0) {
-    problem_files <- bad_files |>
-      dplyr::filter(bad_site_id) |>
+  
+  bad_ids <- bad_sites |> dplyr::filter(has_bad_site_id)
+  if (nrow(bad_ids) > 0) {
+    problem_files <- bad_ids |>
       dplyr::pull(name) |>
       sort() |>
       paste(collapse = ", ")
@@ -111,33 +111,28 @@ test_that("values are within expected ranges", {
       problem_files
     )
   }
-  if (nrow(dplyr::filter(bad_files, bad_lat)) > 0) {
-    problem_files <- bad_files |>
-      dplyr::filter(bad_lat) |>
+
+  bad_coords <- bad_sites |> dplyr::filter(has_bad_lat_or_lng)
+  if (nrow(bad_coords) > 0) {
+    problem_files <- bad_coords |>
       dplyr::pull(name) |>
       sort() |>
       paste(collapse = ", ")
-    warning("The following files have bad latitude values: ", problem_files)
+    warning("The following files have bad lat/lng values: ", problem_files)
   }
-  if (nrow(dplyr::filter(bad_files, bad_lng)) > 0) {
-    problem_files <- bad_files |>
-      dplyr::filter(bad_lng) |>
-      dplyr::pull(name) |>
-      sort() |>
-      paste(collapse = ", ")
-    warning("The following files have bad longitude values: ", problem_files)
-  }
-  if (nrow(dplyr::filter(bad_files, bad_value_low)) > 0) {
-    problem_files <- bad_files |>
-      dplyr::filter(bad_value_low) |>
+  
+  negatives <- bad_sites |> dplyr::filter(has_negatives)
+  if (nrow(negatives) > 0) {
+    problem_files <- negatives |>
       dplyr::pull(name) |>
       sort() |>
       paste(collapse = ", ")
     warning("The following files have negative concentrations: ", problem_files)
   }
-  if (nrow(dplyr::filter(bad_files, bad_value_high)) > 0) {
-    problem_files <- bad_files |>
-      dplyr::filter(bad_value_high) |>
+
+  extremes <- bad_files |> dplyr::filter(has_values_above_2000)
+  if (nrow(extremes) > 0) {
+    problem_files <- extremes |>
       dplyr::pull(name) |>
       sort() |>
       paste(collapse = ", ")
