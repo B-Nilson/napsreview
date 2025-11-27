@@ -27,6 +27,17 @@ test_that("only one value per site per hour", {
       problem_files
     )
     multiple_value_hours |>
+      dplyr::mutate(
+        hour_local = hour_local |>
+          stringr::str_remove_all("//.*") |> 
+          factor(levels = paste0("H", stringr::str_pad(1:24, width = 2, side = "left", pad = "0")))
+      ) |>
+      dplyr::arrange(hour_local, site_id, date) |>
+      dplyr::rename(file_name = name) |>
+      tidyr::pivot_wider(
+        names_from = hour_local,
+        values_from = n
+      ) |>
       data.table::fwrite(file = issues_file)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
