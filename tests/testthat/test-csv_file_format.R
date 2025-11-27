@@ -1,6 +1,7 @@
 # Note: The file format changed after 2004, this should be rectified or at least acknowledged
 test_that("file formats are consistent", {
   db <- connect_to_database()
+  on.exit(DBI::dbDisconnect(db))
 
   v1_rows <- db |>
     dplyr::tbl("raw_data_v1") |>

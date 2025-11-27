@@ -1,5 +1,6 @@
 test_that("only one value per site per hour", {
   raw_data <- load_raw_archive_data(collect = FALSE)
+  on.exit(DBI::dbDisconnect(raw_data$src$con))
 
   multiple_value_hours <- raw_data |>
     dplyr::filter(value != -999) |>
@@ -35,6 +36,7 @@ test_that("only one value per site per hour", {
 
 test_that("values are within expected ranges", {
   raw_data <- load_raw_archive_data(collect = FALSE)
+  on.exit(DBI::dbDisconnect(raw_data$src$con))
 
   flagged_data <- raw_data |>
     dplyr::filter(value != -999) |>

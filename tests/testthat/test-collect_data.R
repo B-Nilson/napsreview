@@ -1,6 +1,7 @@
 test_that("naps data can be collected and archived", {
   raw_data_dir <- system.file("extdata/naps_raw", package = "napsreview")
   db <- connect_to_database()
+  on.exit(DBI::dbDisconnect(db))
 
   test_years <- 1974:2023
   test_pollutants <- c("PM25", "O3", "NO2")
