@@ -66,65 +66,30 @@ test_that("site coordinates are consistent within files", {
   expect_true(nrow(multiple_loc_sites_within_files) == 0)
 })
 
-test_that("city names are consistent", {
-  db <- connect_to_database()
+test_that("city names are consistent for each site", {
+  raw_data <- load_raw_archive_data(collect = FALSE)
+  on.exit(DBI::dbDisconnect(raw_data$src$con))
 
   # TODO: get all problem files and entries for each
-  sites_with_multiple_cities <- db |>
-    dplyr::tbl("raw_data_v2") |>
-    dplyr::select(
-      site_id = `NAPS ID//Identifiant SNPA`,
-      date = `Date//Date`,
-      city = `City//Ville`
-    ) |>
-    dplyr::union_all(
-      db |>
-        dplyr::tbl("raw_data_v1") |>
-        dplyr::select(
-          site_id = `NAPSID`,
-          date = `Date`,
-          city = `City`
-        ) |>
-        dplyr::mutate(
-          date = dbplyr::sql(
-            "CAST(STRPTIME(CAST(Date AS VARCHAR), '%Y%m%d') AS DATE)"
-          )
-        )
-    ) |>
+  sites_with_multiple_cities <- raw_data |>
+    dplyr::distinct(site_id, city) |>
     dplyr::group_by(site_id) |>
-    dplyr::distinct(city, .keep_all = TRUE) |>
     dplyr::summarise(
-      cities = stringr::str_flatten(city, collapse = " | "),
-      sample_dates = stringr::str_flatten(date, collapse = " | ")
+      n_cities = dplyr::n(),
+      cities = stringr::str_flatten(city, collapse = " | ")
     ) |>
-    dplyr::filter(stringr::str_detect(cities, "\\|")) |>
+    dplyr::filter(n_cities > 1) |>
     dplyr::collect()
 
   expect_true(nrow(sites_with_multiple_cities) == 0)
+})
 
-  clean_cities <- db |>
-    dplyr::tbl("raw_data_v2") |>
-    dplyr::select(
-      name,
-      date = `Date//Date`,
-      prov_terr = `Province/Territory//Province/Territoire`,
-      city = `City//Ville`
-    ) |>
-    dplyr::union_all(
-      db |>
-        dplyr::tbl("raw_data_v1") |>
-        dplyr::select(
-          name,
-          date = `Date`,
-          prov_terr = `P/T`,
-          city = `City`
-        ) |>
-        dplyr::mutate(
-          date = dbplyr::sql(
-            "CAST(STRPTIME(CAST(Date AS VARCHAR), '%Y%m%d') AS DATE)"
-          )
-        )
-    ) |>
+test_that("city names are consistently spelled", {
+  raw_data <- load_raw_archive_data(collect = FALSE)
+  on.exit(DBI::dbDisconnect(raw_data$src$con))
+
+  clean_cities <- raw_data |>
+    dplyr::select(name, date, prov_terr, city) |>
     dplyr::distinct(prov_terr, city, .keep_all = TRUE) |>
     dplyr::mutate(
       city_clean = city |>
