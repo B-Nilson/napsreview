@@ -29,8 +29,13 @@ test_that("only one value per site per hour", {
     multiple_value_hours |>
       dplyr::mutate(
         hour_local = hour_local |>
-          stringr::str_remove_all("//.*") |> 
-          factor(levels = paste0("H", stringr::str_pad(1:24, width = 2, side = "left", pad = "0")))
+          stringr::str_remove_all("//.*") |>
+          factor(
+            levels = paste0(
+              "H",
+              stringr::str_pad(1:24, width = 2, side = "left", pad = "0")
+            )
+          )
       ) |>
       dplyr::arrange(hour_local, site_id, date) |>
       dplyr::rename(file_name = name) |>
@@ -100,17 +105,17 @@ test_that("values are within expected ranges", {
       site_ids = paste(site_id, collapse = ", "),
       .groups = "drop"
     )
-  
+
   issues_file <- system.file("extdata/issues", package = "napsreview") |>
-    file.path("invalid_values.csv") 
+    file.path("invalid_values.csv")
   if (nrow(bad_files) > 0) {
-    bad_files |> 
+    bad_files |>
       dplyr::rename(file_name = name) |>
       write.csv(file = issues_file, row.names = FALSE)
-  }else if (file.exists(issues_file)) {
+  } else if (file.exists(issues_file)) {
     file.remove(issues_file)
   }
-  
+
   bad_ids <- bad_sites |> dplyr::filter(has_bad_site_id)
   if (nrow(bad_ids) > 0) {
     problem_files <- bad_ids |>
@@ -131,7 +136,7 @@ test_that("values are within expected ranges", {
       paste(collapse = ", ")
     warning("The following files have bad lat/lng values: ", problem_files)
   }
-  
+
   negatives <- bad_sites |> dplyr::filter(has_negatives)
   if (nrow(negatives) > 0) {
     problem_files <- negatives |>

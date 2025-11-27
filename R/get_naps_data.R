@@ -77,7 +77,13 @@ download_naps_csv <- function(
     list(timeout = timeout),
     {
       if (!file.exists(local_file) | !check_exists) {
-        download.file(csv_url, local_file, method = "libcurl", mode = "wb", quiet = TRUE) |>
+        download.file(
+          csv_url,
+          local_file,
+          method = "libcurl",
+          mode = "wb",
+          quiet = TRUE
+        ) |>
           handyr::on_error(.return = NULL)
       }
     }

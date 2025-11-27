@@ -18,8 +18,10 @@ make_cor_plot <- function(site_data, value_cols, name_cols, site_id) {
       names_from = name_cols[2],
       values_from = "cor"
     ) |>
-    dplyr::filter(dplyr::pick(dplyr::all_of(name_cols[1])) == value_cols[1]) |> 
-    dplyr::mutate(label = round(unlist(dplyr::pick(dplyr::all_of(value_cols[2]))), 2))
+    dplyr::filter(dplyr::pick(dplyr::all_of(name_cols[1])) == value_cols[1]) |>
+    dplyr::mutate(
+      label = round(unlist(dplyr::pick(dplyr::all_of(value_cols[2]))), 2)
+    )
 
   plot_data |>
     airquality::tile_plot(

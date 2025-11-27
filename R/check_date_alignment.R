@@ -159,19 +159,21 @@ check_date_alignment <- function(
                   name_cols = name_cols,
                   site_id = naps_id[i]
                 )
-              gg |> handyr::save_figure(
-                  out_path = save_issues_to |> file.path(
-                  "monthly_cor_plots",
-                  sprintf(
-                    "%s_%s_%s.png",
-                    naps_id[i],
-                    value_cols[1],
-                    value_cols[2]
-                  )
-                ),
-                page_width = 7,
-                taller = 3
-              )
+              gg |>
+                handyr::save_figure(
+                  out_path = save_issues_to |>
+                    file.path(
+                      "monthly_cor_plots",
+                      sprintf(
+                        "%s_%s_%s.png",
+                        naps_id[i],
+                        value_cols[1],
+                        value_cols[2]
+                      )
+                    ),
+                  page_width = 7,
+                  taller = 3
+                )
             }
           )
       )

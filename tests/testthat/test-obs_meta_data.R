@@ -101,7 +101,7 @@ test_that("city names are consistent for each site", {
   expect_true(nrow(sites_with_multiple_cities) == 0)
 })
 
-test_that("city names are consistently spelled", {  
+test_that("city names are consistently spelled", {
   issues_file <- system.file("extdata/issues", package = "napsreview") |>
     file.path("multiple_city_spellings.csv")
   raw_data <- load_raw_archive_data(collect = FALSE)
@@ -136,7 +136,8 @@ test_that("city names are consistently spelled", {
         sort() |>
         paste(collapse = ", ")
     )
-    cities_with_multiple_spellings |> write.csv(file = issues_file, row.names = FALSE)
+    cities_with_multiple_spellings |>
+      write.csv(file = issues_file, row.names = FALSE)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
   }
