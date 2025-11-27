@@ -101,15 +101,6 @@ test_that("city names are consistently spelled", {
     ) |>
     dplyr::collect()
 
-  get_similiar_cities <- function(cities, threshold = 0.2) {
-    if (length(cities) == 1) {
-      return("")
-    }
-    cities |>
-      stringdist::stringdistmatrix(cities, method = "jw") |>
-      apply(1, \(x) cities[x <= threshold] |> sort() |> paste(collapse = " | "))
-  }
-
   cities_with_multiple_spellings <- clean_cities |>
     dplyr::group_by(prov_terr) |>
     dplyr::mutate(
