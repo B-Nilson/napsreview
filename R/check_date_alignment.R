@@ -9,8 +9,8 @@ check_date_alignment <- function(
   passed <- list()
   issue_names <- c("overall", "site", "annual", "annual_site")
   issue_files <- pollutant |>
-    paste(issue_names, "alignment.csv", sep = "_") |> 
-    as.list() |> 
+    paste(issue_names, "alignment.csv", sep = "_") |>
+    as.list() |>
     stats::setNames(issue_names)
 
   # Add lag columns for this pollutant
@@ -128,6 +128,52 @@ check_date_alignment <- function(
     bad_site_years |> write.csv(file = issue_file)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
+  }
+
+  # Make correlation tile plots for failed sites
+  if (!all(unlist(passed))) {
+    failed_sites <- bad_sites |>
+      dplyr::bind_rows(bad_site_years) |>
+      dplyr::select(naps_id, best_lag_b) |>
+      dplyr::distinct()
+    cor_plots <- pol_lags |>
+      dplyr::inner_join(
+        failed_sites |>
+          dplyr::bind_rows(
+            failed_sites |> dplyr::mutate(best_lag_b = value_cols[2])
+          ) |>
+          dplyr::distinct(),
+        by = c("naps_id", "best_lag_b") |>
+          stats::setNames(c("naps_id", name_cols[2]))
+      ) |>
+      tidyr::nest(.by = naps_id) |>
+      dplyr::mutate(
+        plot = data |>
+          handyr::for_each(
+            .as_list = TRUE,
+            .enumerate = TRUE,
+            \(site_data, i) {
+              gg <- site_data |>
+                make_cor_plot(
+                  value_cols = value_cols,
+                  name_cols = name_cols,
+                  site_id = naps_id[i]
+                )
+              gg |> handyr::save_figure(
+                  out_path = save_issues_to |> file.path(
+                  "monthly_cor_plots",
+                  sprintf(
+                    "%s_%s_%s.png",
+                    naps_id[i],
+                    value_cols[1],
+                    value_cols[2]
+                  )
+                ),
+                page_width = 7
+              )
+            }
+          )
+      )
   }
 
   return(passed)
