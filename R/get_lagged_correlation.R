@@ -51,14 +51,18 @@ get_lagged_correlation <- function(
         return(lagged_n_matrix)
       }),
       best_lag_a = sapply(cor_matrix, \(x) {
-        row.names(x)[which(x == max(x, na.rm = TRUE), arr.ind = TRUE)[[1]]] |>
+        row.names(x)[which(x == handyr::max(x, na.rm = TRUE), arr.ind = TRUE)[[
+          1
+        ]]] |>
           handyr::on_error(.return = NA_character_)
       }),
       best_lag_b = sapply(cor_matrix, \(x) {
-        colnames(x)[which(x == max(x, na.rm = TRUE), arr.ind = TRUE)[[2]]] |>
+        colnames(x)[which(x == handyr::max(x, na.rm = TRUE), arr.ind = TRUE)[[
+          2
+        ]]] |>
           handyr::on_error(.return = NA_character_)
       }),
-      best_cor = sapply(cor_matrix, \(x) max(x, na.rm = TRUE)),
+      best_cor = sapply(cor_matrix, \(x) handyr::max(x, na.rm = TRUE)),
       nonlagged_cor = sapply(cor_matrix, \(x) x[1, 1]),
       mean_count = sapply(count_matrix, \(x) mean(x, na.rm = TRUE))
     ) |>
@@ -107,7 +111,7 @@ add_lagged_columns <- function(
 
   # Infill missing rows id values within each group
   output <- data |>
-    dplyr::group_by({{ groups }}) |>
+    dplyr::group_by(dplyr::pick(dplyr::all_of(groups))) |>
     tidyr::complete(
       !!row_id := seq(
         min(!!row_id),
@@ -144,22 +148,34 @@ add_lagged_columns <- function(
 
   # Pivot longer if desired
   if (pivot_longer) {
-    for (val in values_char) {
-      output <- output |>
-        tidyr::pivot_longer(
-          cols = c(
-            dplyr::all_of(val),
-            dplyr::starts_with(val |> paste0("_lag_"))
-          ),
-          names_to = paste0(val, "_lag"),
-          values_to = val
-        )
-    }
+    output <- values_char |>
+      handyr::for_each(
+        .as_list = TRUE,
+        .join = TRUE,
+        .show_progress = FALSE,
+        \(val) {
+          output |>
+            dplyr::select(
+              {{ groups }},
+              {{ row_id }},
+              dplyr::all_of(val),
+              dplyr::starts_with(val |> paste0("_lag_"))
+            ) |>
+            tidyr::pivot_longer(
+              cols = c(
+                dplyr::all_of(val),
+                dplyr::starts_with(val |> paste0("_lag_"))
+              ),
+              names_to = paste0(val, "_lag"),
+              values_to = val
+            )
+        }
+      )
   }
 
   # Drop infilled rows from tidyr::complete
   output <- output |>
-    dplyr::filter(dplyr::if_any(
+    dplyr::filter(dplyr::if_all(
       c(
         {{ values }},
         dplyr::starts_with(values_char |> paste0("_lag_"))

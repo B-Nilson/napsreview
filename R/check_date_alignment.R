@@ -16,8 +16,8 @@ check_date_alignment <- function(
   # Add lag columns for this pollutant
   pol_lags <- aligned_data |>
     add_lagged_columns(
-      groups = naps_id,
-      row_id = date,
+      groups = "naps_id",
+      row_id = "date",
       row_id_step = "1 hours",
       values = value_cols,
       lags = 1:2,
