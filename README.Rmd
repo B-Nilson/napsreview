@@ -252,7 +252,8 @@ and some sites have multiple city names across files.
 "extdata/issues/multiple_city_sites.csv" |>
   system.file(package = "napsreview") |>
   read.csv() |>
-  tibble::as_tibble()
+  tibble::as_tibble() |> 
+  dplyr::arrange(dplyr::desc(n_cities))
 ```
 
 ## Invalid Metadata
@@ -284,7 +285,7 @@ For some sites/files, the coordinates are outside of the province/territory they
 
 ## Unrealistic Values
 
-Some values in the raw data are unrealistically high or low, coordinates exist that are outside Canada, and some site ids are not properly padded with leading zeros.
+Some values in the raw data are unrealistically high or low.
 
 Here is a sample of files/sites with negative concentrations:
 ```{r negatives, eval = TRUE, echo = FALSE}
@@ -303,16 +304,6 @@ Here is a sample of files/sites with concentrations above 2000:
   read.csv() |>
   tibble::as_tibble() |>
   dplyr::filter(has_values_above_2000) |>
-  dplyr::select(file_name, site_ids)
-```
-
-Here is a sample of files/sites with invalid site ids:
-```{r unrealistic_id, eval = TRUE, echo = FALSE}
-"extdata/issues/invalid_values.csv" |>
-  system.file(package = "napsreview") |>
-  read.csv() |>
-  tibble::as_tibble() |>
-  dplyr::filter(has_bad_site_id) |>
   dplyr::select(file_name, site_ids)
 ```
 

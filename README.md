@@ -255,18 +255,18 @@ In addition, city names are inconsistently spelled between files
 and some sites have multiple city names across files.
 
     #> # A tibble: 48 × 3
-    #>    site_id n_cities cities                                           
-    #>      <int>    <int> <chr>                                            
-    #>  1  100135        2 Coquitlam | Metro Van - Coquitlam                
-    #>  2   52301        2 Saint-Faustin-Lac-Carré | Saint-Faustin-Lac-Carre
-    #>  3  100121        2 Metro Van - North Vancouver | North Vancouver    
-    #>  4   10102        2 St. John's | St Johns                            
-    #>  5   90801        2 Fort Mckay | Fort Mackay                         
-    #>  6   55001        2 Ferme Neuve | Mont Saint-Michel                  
-    #>  7  101004        2 Metro Van - Abbotsford | Abbotsford              
-    #>  8   50801        2 Trois Rivières | Trois-Rivières                  
-    #>  9   51501        2 St-Zépherin-De-Courval | St. Zephirin-De-Courval 
-    #> 10  100112        2 Vancouver | Metro Van - Vancouver                
+    #>    site_id n_cities cities                                                  
+    #>      <int>    <int> <chr>                                                   
+    #>  1   53501        3 Saint-François | St-Francois | St-François-Île-D'orléans
+    #>  2  100135        2 Coquitlam | Metro Van - Coquitlam                       
+    #>  3   52301        2 Saint-Faustin-Lac-Carré | Saint-Faustin-Lac-Carre       
+    #>  4  100121        2 Metro Van - North Vancouver | North Vancouver           
+    #>  5   10102        2 St. John's | St Johns                                   
+    #>  6   90801        2 Fort Mckay | Fort Mackay                                
+    #>  7   55001        2 Ferme Neuve | Mont Saint-Michel                         
+    #>  8  101004        2 Metro Van - Abbotsford | Abbotsford                     
+    #>  9   50801        2 Trois Rivières | Trois-Rivières                         
+    #> 10   51501        2 St-Zépherin-De-Courval | St. Zephirin-De-Courval        
     #> # ℹ 38 more rows
 
 ## Invalid Metadata
@@ -297,9 +297,7 @@ longitude.
 
 ## Unrealistic Values
 
-Some values in the raw data are unrealistically high or low, coordinates
-exist that are outside Canada, and some site ids are not properly padded
-with leading zeros.
+Some values in the raw data are unrealistically high or low.
 
 Here is a sample of files/sites with negative concentrations:
 
@@ -325,11 +323,6 @@ Here is a sample of files/sites with concentrations above 2000:
     #>   <chr>     <chr>                                 
     #> 1 PM25_2016 090801, 094601, 090806, 090701, 090702
     #> 2 PM25_2023 105504
-
-Here is a sample of files/sites with invalid site ids:
-
-    #> # A tibble: 0 × 2
-    #> # ℹ 2 variables: file_name <chr>, site_ids <chr>
 
 ## Date Misalignment
 
