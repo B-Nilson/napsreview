@@ -133,7 +133,7 @@ test_that("all coordinates are within the province the site is marked in", {
 
   prov_terr_boundaries <- aqmapr::load_canadian_provinces() |>
     suppressWarnings() # sf r version build diff warning
-  
+
   bad_coords <- unique_coords |>
     dplyr::mutate(
       expected_prov_terr = prov_terr_boundaries$abbr[
@@ -147,15 +147,21 @@ test_that("all coordinates are within the province the site is marked in", {
             return(index)
           })
       ]
-    ) |> 
-    dplyr::filter(expected_prov_terr != prov_terr | is.na(expected_prov_terr)) |> 
-    handyr::sf_as_df(keep_coords = TRUE) |> 
-    dplyr::select(-crs) |> 
+    ) |>
+    dplyr::filter(
+      expected_prov_terr != prov_terr | is.na(expected_prov_terr)
+    ) |>
+    handyr::sf_as_df(keep_coords = TRUE) |>
+    dplyr::select(-crs) |>
     dplyr::rename(lat = y, lng = x)
 
-  bad_files <- raw_data |> 
-    dplyr::right_join(bad_coords, by = c("prov_terr", "lat", "lng"), copy = TRUE) |> 
-    dplyr::count(name, site_id, prov_terr, expected_prov_terr, lat, lng) |> 
+  bad_files <- raw_data |>
+    dplyr::right_join(
+      bad_coords,
+      by = c("prov_terr", "lat", "lng"),
+      copy = TRUE
+    ) |>
+    dplyr::count(name, site_id, prov_terr, expected_prov_terr, lat, lng) |>
     dplyr::collect() |>
     tidyr::separate(col = name, into = c("pollutant", "year"), sep = "_") |>
     dplyr::group_by(site_id, lat, lng, prov_terr, expected_prov_terr) |>
@@ -164,7 +170,7 @@ test_that("all coordinates are within the province the site is marked in", {
       years = unique(year) |> as.integer() |> sentence_range(),
       .groups = "drop"
     )
-  
+
   # Warn if there are any, and save to file (or old remove file if no issues)
   if (nrow(bad_files) > 0) {
     warning(

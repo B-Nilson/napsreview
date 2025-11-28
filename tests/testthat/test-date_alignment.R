@@ -21,15 +21,15 @@ test_that("aligns with bcgov data", {
     dplyr::tbl("bcgov_aligned_data") |>
     dplyr::collect() |>
     dplyr::mutate(
-      dplyr::across(dplyr::ends_with(c("_naps", "_bcgov")),\(x) {
+      dplyr::across(dplyr::ends_with(c("_naps", "_bcgov")), \(x) {
         ifelse(x < 0, NA_real_, x) |> round(digits = 0)
       })
     )
 
   # Test alignment for each pollutant
   passed <- list()
-  pollutants <- names(aligned_data) |> 
-    stringr::str_subset("_bcgov$") |> 
+  pollutants <- names(aligned_data) |>
+    stringr::str_subset("_bcgov$") |>
     sub(pattern = "_bcgov$", replacement = "")
   for (pollutant in pollutants) {
     value_cols <- pollutant |> paste0("_", c("bcgov", "naps"))

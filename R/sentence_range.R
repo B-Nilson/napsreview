@@ -1,6 +1,5 @@
-
 #' Convert a sequence of numbers to a human-readable string
-#' 
+#'
 #' @description
 #' This function takes a vector of numbers and returns a human-readable string
 #' representing the range of numbers. For example, the input c(1, 2, 3, 4, 5)

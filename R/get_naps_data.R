@@ -8,7 +8,7 @@
 #' exists locally before trying to download it. Defaults to `TRUE`.
 #' @param quiet A logical specifying whether to supress progress messages.
 #' @return a list of lists, each with the raw data and header for that NAPS data file
-#' @export 
+#' @export
 get_naps_data <- function(
   years,
   pollutants = c("PM25", "O3", "NO2"),
