@@ -444,9 +444,6 @@ the NAPS data. For the Vancouver area monitors the reason is less clear,
 but could be due to how air quality is managed in that region seperatley
 from the rest of the province.
 
-    #> `summarise()` has grouped output by 'site_id'. You can override using the
-    #> `.groups` argument.
-
 <figure>
 <img src="/inst/extdata/issues/misalignment_map.png"
 alt="Map of sites with alignment issues" />

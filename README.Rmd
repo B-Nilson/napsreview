@@ -394,7 +394,8 @@ bad_sites <- "extdata/issues/pm25_annual_site_alignment.csv" |>
       read.csv() |>
       dplyr::group_by(site_id, city) |>
       dplyr::summarise(
-        dplyr::across(c(lat, lng), median)
+        dplyr::across(c(lat, lng), median),
+        .groups = "drop"
       ) |>
       dplyr::distinct(site_id, .keep_all = TRUE),
     by = c("naps_id" = "site_id")
