@@ -40,8 +40,8 @@ sentence_range <- function(x, reverse = FALSE) {
   }
 
   # Join any values repeated 3+ times into a "a - b" range
-  is_threepeat <- ((x - dplyr::lag(x, default = -Inf)) == 1 &
-    (x - dplyr::lag(x, n = 2, default = -Inf)) == 2)
+  is_threepeat <- ((x - dplyr::lag(x, default = -999999)) == 1 &
+    (x - dplyr::lag(x, n = 2, default = -999999)) == 2)
   if (any(is_threepeat)) {
     groups <- (which(is_threepeat) - dplyr::lag(which(is_threepeat))) |>
       handyr::swap(NA, with = 1)
