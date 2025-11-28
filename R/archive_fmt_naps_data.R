@@ -70,6 +70,14 @@ archive_fmt_naps_data <- function(
       update_duplicates = FALSE,
       use_on_conflict = TRUE
     )
+
+  # Write out csv copy of metadata
+  outdir <- "extdata" |>
+    system.file(package = "napsreview")
+  db |>
+    dplyr::tbl(fmt_meta_tbl) |>
+    dplyr::collect() |>
+    write.csv(file.path(outdir, "naps_meta.csv"), row.names = FALSE)
 }
 
 format_pollutant_data <- function(pollutant, naps_data) {
