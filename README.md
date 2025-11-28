@@ -7,12 +7,23 @@
 
 <!-- badges: end -->
 
-The goal of napsreview is to assess the validity of the NAPS opendata
-dataset.
+`napsreview` is an R package with the goal of assessing the validity of
+the National Air Pollution Surveillance (NAPS) Program archive of
+Canadian quality-assured continuous air quality observations.
+
+You can read more about the NAPS Program
+[here](https://open.canada.ca/data/en/dataset/1b36a356-defd-4813-acea-47bc3abd859b).
+
+There are two key parts to `napsreview`:
+
+1.  Creation of a local database of NAPS (and comparison) data (see
+    [Build database](#build-database))
+2.  Validity assessment of NAPS data (see [Assess
+    validity](#assess-validity))
 
 ## Installation
 
-You can install the development version of napsreview from
+Using R, you can install the development version of napsreview from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -20,38 +31,39 @@ You can install the development version of napsreview from
 pak::pak("B-Nilson/napsreview")
 ```
 
-## Build database
+# Build database
 
 The NAPS dataset is split into annual files by pollutant. Below we
-download those files and dump them into a duckdb database, as well as
-format and combine them into a single dataset.
+download each of those files and dump them into a `duckdb` database, as
+well as format and combine them into a single dataset.
 
 ``` r
 library(napsreview)
+desired_years <- 1974:2023
+desired_pollutants <- c("PM25", "O3", "NO2")
+
+# Define local paths (default is the install dir of napsreview)
+#  but you can change that if needed
+raw_data_dir <- "extdata/naps_raw" |>
+  system.file(package = "napsreview")
+db_path <- "extdata" |>
+  system.file(package = "napsreview") |>
+  file.path("naps.duckdb")
 
 # Create (if needed) and connect to local database
-raw_data_dir <- system.file("extdata/naps_raw", package = "napsreview")
-db_path <- system.file("extdata", package = "napsreview") |>
-  file.path("naps.duckdb")
 db <- connect_to_database(db_path)
 on.exit(DBI::dbDisconnect(db))
 
 # Collect data for desired years/pollutants
-test_years <- 1974:2023
-test_pollutants <- c("PM25", "O3", "NO2")
-naps_data <- test_years |>
+naps_data <- desired_years |>
   get_naps_data(
-    pollutants = test_pollutants,
+    pollutants = desired_pollutants,
     raw_data_dir = raw_data_dir,
-    check_if_raw_exists = TRUE
+    check_if_raw_exists = TRUE # don't download if already exists locally
   )
 
 # Write raw data to database if needed
-if (
-  !DBI::dbExistsTable(db, "raw_data_v1") |
-    !DBI::dbExistsTable(db, "raw_data_v2") |
-    !DBI::dbExistsTable(db, "raw_data")
-) {
+if (!DBI::dbExistsTable(db, "raw_data")) {
   db |>
     archive_raw_naps_data(
       naps_data = naps_data,
@@ -71,7 +83,42 @@ if (!DBI::dbExistsTable(db, "fmt_data")) {
 }
 ```
 
-## Data format shifts after 2004, except for 2002 for NO2/O3
+And you can check that worked and view the data using the following:
+
+``` r
+library(napsreview)
+
+# Connect to database (change path here if you did earlier as well)
+db_path <- system.file("extdata", package = "napsreview") |>
+  file.path("naps.duckdb")
+db <- connect_to_database(db_path)
+on.exit(DBI::dbDisconnect(db))
+
+# Print the first 10 rows of each table
+#   Note - these are lazy tables. 
+#   You need to pass to dplyr::collect() if 
+#   you want to query and load the data from the database
+db |> dplyr::tbl("raw_data")
+db |> dplyr::tbl("raw_data_headers")
+db |> dplyr::tbl("fmt_data")
+db |> dplyr::tbl("fmt_meta")
+```
+
+# Assess Validity
+
+Several relatively minor issues have been found in the NAPS dataset:
+
+- A major format change occurred around 2004 (see [Data Format
+  Differences](#data-format-differences)).
+- Site meta data values are inconsistent between files (see
+  [Inconsistent Metadata](#inconsistent-metadata)).
+- Some coordinate and concentration values are unrealistic (see
+  [Unrealistic Values](#unrealistic-values)).
+
+However, most noteably an inconsistent date mis-aligment was discovered
+for several sites/years (see [Date Misalignment](#date-misalignment)).
+
+## Data Format Differences
 
 The NAPS data format changed after 2004 to include French and English
 headers and several other format changes. Strangley, the 2002 files for
@@ -84,25 +131,58 @@ Noteably:
 - new files have FR and EN headers (i.e. ‘City//Ville’ instead of
   ‘City’)
 - new files have slightly different pre-data header format
-- new files have a different date format
+- new files have a different date format (i.e. “2025-01-01” instead of
+  “20040101”)
 
 ``` r
 library(napsreview)
 
+# Connect to database (change path here if you did earlier as well)
 db_path <- system.file("extdata", package = "napsreview") |>
   file.path("naps.duckdb")
 db <- connect_to_database(db_path)
 on.exit(DBI::dbDisconnect(db))
 
+# View encoding differences between versions (change path here if you did earlier as well)
+raw_data_dir <- "extdata/naps_raw" |>
+  system.file(package = "napsreview")
+raw_data_dir |> 
+  file.path("PM25_2002.csv") |> # v1 file
+  readLines(encoding = "UTF-8") |> # actually latin1
+  stringr::str_subset("\xb5") |> # so non-standard characters are broken
+  head()
+raw_data_dir |> 
+  file.path("PM25_2006.csv") |> # same file
+  readLines(encoding = "latin1") |> # now we try latin1
+  stringr::str_subset("\xb5") |> # so nothing broken
+  head()
+raw_data_dir |> 
+  file.path("PM25_2006.csv") |> # v2 file
+  readLines(encoding = "UTF-8") |> # UTF-8 as expected
+  stringr::str_subset("\xb5") |> # so nothing broken
+  head()
+
 # View file differences between versions
-# Note: name and row_number are added to ensure uniqueness in the db
+# Note: name and row_number are added by `napsreview` to ensure uniqueness in the db
 # Note: 'Method' / 'Method Code//Code Méthode' are included for non-PM25 pollutants for consistency, even though they are not found in the raw files
 db |> dplyr::tbl("raw_data_v1")
 db |> dplyr::tbl("raw_data_v2")
 
-# View file header differences between versions
+# View pre-data header differences between versions
 db |> dplyr::tbl("raw_data_headers_v1")
 db |> dplyr::tbl("raw_data_headers_v2")
+
+# View date format differences between versions
+db |>
+  dplyr::tbl("raw_data_v1") |>
+  head(n = 1) |>
+  dplyr::pull("Date") |>
+  as.character()
+db |>
+  dplyr::tbl("raw_data_v2") |>
+  head(n = 1) |>
+  dplyr::pull("Date//Date") |>
+  as.character()
 ```
 
 These files have been identified as having the old format:
@@ -111,7 +191,7 @@ These files have been identified as having the old format:
     #> O3: 1974-2001, 2003 and 2004
     #> PM25: 1995-2004
 
-## Site metadata are inconsistent
+## Inconsistent Metadata
 
 Every entry in the raw NAPS data has latitude, longitude,
 province/territory, and city information. However, for many sites these
@@ -169,7 +249,7 @@ and some sites have multiple city names across files.
     #> 10  100112        2 Vancouver | Metro Van - Vancouver                
     #> # ℹ 38 more rows
 
-## Some values are unrealistic
+## Unrealistic Values
 
 Some values in the raw data are unrealistically high or low, coordinates
 exist that are outside Canada, and some site ids are not properly padded
@@ -217,3 +297,18 @@ Here is a sample of files/sites with invalid site ids:
 
     #> # A tibble: 0 × 2
     #> # ℹ 2 variables: file_name <chr>, site_ids <chr>
+
+## Date Misalignment
+
+Inconsistencies have been found in the hourly alignment of NAPS data for
+some sites in entirety, and for select years for some sites, when
+compared to the same station’s data sourced directly from the BC
+Government archive. Due to NAPS recieving their data from BC, this issue
+is likely due to an error in how the NAPS data are converted to local
+hour and archived.
+
+Given the presence of the BC Government archive with clear documentation
+on data timezone, a standardized data format, and the ability to collect
+data programmatically, this issue has only been assessed for BC.
+However, it is likely that this issue affects data from across the
+country.
