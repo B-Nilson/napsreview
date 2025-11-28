@@ -383,10 +383,11 @@ for (pollutant in pollutants) {
 ```
 
 Here is a sample of the sites with persistent date misalignment issues
-(PM2.5 only, but they exist for other pollutants). “\_lag_1” indicates
-that those data are lagged by 1 hour (i.e. those data are incorrectly
-shifted 1 hour later). Here all of the sites go from 70-90% correlation
-to 93-100% after lagging the NAPS data by 1 hour.
+(PM2.5 only, but they exist for other pollutants - see
+[here](extdata/issues/)). “\_lag_1” indicates that those data are lagged
+by 1 hour (i.e. those data are incorrectly shifted 1 hour later). Here
+all of the sites go from 70-90% correlation to 93-100% after lagging the
+NAPS data by 1 hour.
 
     #> # A tibble: 9 × 6
     #>   naps_id best_lag_a best_lag_b      best_cor nonlagged_cor mean_count
