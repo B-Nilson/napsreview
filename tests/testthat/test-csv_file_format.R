@@ -40,4 +40,22 @@ test_that("file formats are consistent", {
   (v2_rows > 0) |> expect_true()
 })
 
+test_that("extra columns added by excel are not present", {
+  raw_data_dir <- system.file("extdata/naps_raw", package = "napsreview")
+
+  n_cols_each_file <- raw_data_dir |>
+    list.files(full.names = TRUE) |>
+    sapply(
+      \(fp) {
+        fp |>
+          base::readLines() |>
+          stringr::str_count(pattern = ",") |>
+          max() +
+          1
+      }
+    )
+
+  expect_true(all(n_cols_each_file %in% c(31, 32)))
+})
+
 # TODO: add test showing how method_code is only in PM2.5 files ?
