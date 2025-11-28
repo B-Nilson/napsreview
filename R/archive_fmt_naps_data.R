@@ -1,3 +1,11 @@
+#' Archive formatted NAPS data
+#'
+#' @param db A duckdb connection.
+#' @param naps_data Output of [get_naps_data()] - a list of lists with the raw data and header for each NAPS data file.
+#' @param fmt_data_tbl The name of the table to write the formatted data to.
+#' @param fmt_meta_tbl The name of the table to write the formatted meta data to.
+#'
+#' @export
 archive_fmt_naps_data <- function(
   db,
   naps_data,

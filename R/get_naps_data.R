@@ -1,3 +1,14 @@
+#' Download and load NAPS data
+#'
+#' @param years A vector of integers specifying the years to download data for.
+#' @param pollutants A character vector specifying the pollutants to download data for.
+#' @param raw_data_dir A character string specifying the local directory where the raw
+#' data files should be saved. Defaults to a temporary directory.
+#' @param check_if_raw_exists A logical specifying whether to check if the file already
+#' exists locally before trying to download it. Defaults to `TRUE`.
+#' @param quiet A logical specifying whether to supress progress messages.
+#' @return a list of lists, each with the raw data and header for that NAPS data file
+#' @export 
 get_naps_data <- function(
   years,
   pollutants = c("PM25", "O3", "NO2"),

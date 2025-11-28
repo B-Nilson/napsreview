@@ -1,5 +1,14 @@
-# TODO: include method code details
+#' Standardize NAPS data formatting
+#' 
+#' Converts v1 and v2 NAPS data files to a common format, 
+#' filters out invalid entries, and
+#' combines date and local hour and converts to POSIXct (UTC time) 
+#'
+#' @param naps_data_list A list of the raw NAPS data and headers for a single year and pollutant.
+#' @return A dataframe of formatted NAPS data for a single year and pollutant.
+#' @export
 format_naps_data <- function(naps_data_list) {
+  # TODO: include method code details
   desired_columns <- c(
     site_id = "NAPS ID//Identifiant SNPA",
     prov_terr = "Province/Territory//Province/Territoire",

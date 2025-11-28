@@ -1,3 +1,10 @@
+#' Archive raw NAPS data
+#'
+#' @param db A duckdb connection.
+#' @param naps_data Output of [get_naps_data()] - a list of lists with the raw data and header for each NAPS data file.
+#' @param raw_data_tbl The name of the table to write the raw data to. "_v1" and "_v2" will be appended to diffentiate the two versions of the files.
+#' @param raw_headers_tbl The name of the table to write the raw header data to (each NAPS files has a pre-data header with file info). 
+#' @export
 archive_raw_naps_data <- function(
   db,
   naps_data,

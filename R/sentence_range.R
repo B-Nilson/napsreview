@@ -1,5 +1,17 @@
-# TODO: move to handyr
+
+#' Convert a sequence of numbers to a human-readable string
+#' 
+#' @description
+#' This function takes a vector of numbers and returns a human-readable string
+#' representing the range of numbers. For example, the input c(1, 2, 3, 4, 5)
+#' would return the string "1 - 5". If the input is c(1, 2, 3, 5, 6), the output
+#' would be "1 - 3 and 5 - 6".
+#' @param x A vector of numbers to convert to a human-readable string.
+#' @param reverse Should the reverse be done instead? i.e "1 - 3 and 5 - 6" -> "1, 2, 3, 5, 6".
+#' @return A human-readable string representing the range of numbers in x.
+#' @export
 sentence_range <- function(x, reverse = FALSE) {
+  # TODO: move to handyr
   if (reverse) {
     reversed <- x |>
       strsplit(", | and ") |>
