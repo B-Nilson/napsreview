@@ -4,3 +4,4 @@
 ^\.Rproj\.user$
 ^[.]?air[.]toml$
 ^\.vscode$
+^README\.Rmd$

@@ -1,0 +1,205 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# napsreview
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of napsreview is to assess the validity of the NAPS opendata dataset.
+
+## Installation
+
+You can install the development version of napsreview from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("B-Nilson/napsreview")
+```
+
+## Build database
+
+The NAPS dataset is split into annual files by pollutant. 
+Below we download those files and dump them into a duckdb database, 
+as well as format and combine them into a single dataset.
+
+```{r collect_data, eval = FALSE}
+library(napsreview)
+
+# Create (if needed) and connect to local database
+raw_data_dir <- system.file("extdata/naps_raw", package = "napsreview")
+db_path <- system.file("extdata", package = "napsreview") |>
+  file.path("naps.duckdb")
+db <- connect_to_database(db_path)
+on.exit(DBI::dbDisconnect(db))
+
+# Collect data for desired years/pollutants
+test_years <- 1974:2023
+test_pollutants <- c("PM25", "O3", "NO2")
+naps_data <- test_years |>
+  get_naps_data(
+    pollutants = test_pollutants,
+    raw_data_dir = raw_data_dir,
+    check_if_raw_exists = TRUE
+  )
+
+# Write raw data to database if needed
+if (
+  !DBI::dbExistsTable(db, "raw_data_v1") |
+    !DBI::dbExistsTable(db, "raw_data_v2") |
+    !DBI::dbExistsTable(db, "raw_data")
+) {
+  db |>
+    archive_raw_naps_data(
+      naps_data = naps_data,
+      raw_data_tbl = "raw_data",
+      raw_headers_tbl = "raw_data_headers"
+    )
+}
+
+# Format data and write to database if needed
+if (!DBI::dbExistsTable(db, "fmt_data")) {
+  db |>
+    archive_fmt_naps_data(
+      naps_data = naps_data,
+      fmt_data_tbl = "fmt_data",
+      fmt_meta_tbl = "fmt_meta"
+    )
+}
+```
+
+## Data format shifts after 2004, except for 2002 for NO2/O3
+
+The NAPS data format changed after 2004 to include French and English headers and several other format changes. Strangley, the 2002 files for NO2 and O3 use the new format, unlike the rest of the files for those pollutants prior to 2005.
+
+Noteably:
+
+* new files are encoded in UTF-8, old files are latin1
+* new files have FR and EN headers (i.e. 'City//Ville' instead of 'City')
+* new files have slightly different pre-data header format
+* new files have a different date format
+
+```{r format_shift, eval = FALSE}
+library(napsreview)
+
+db_path <- system.file("extdata", package = "napsreview") |>
+  file.path("naps.duckdb")
+db <- connect_to_database(db_path)
+on.exit(DBI::dbDisconnect(db))
+
+# View file differences between versions
+# Note: name and row_number are added to ensure uniqueness in the db
+# Note: 'Method' / 'Method Code//Code Méthode' are included for non-PM25 pollutants for consistency, even though they are not found in the raw files
+db |> dplyr::tbl("raw_data_v1")
+db |> dplyr::tbl("raw_data_v2")
+
+# View file header differences between versions
+db |> dplyr::tbl("raw_data_headers_v1")
+db |> dplyr::tbl("raw_data_headers_v2")
+```
+
+These files have been identified as having the old format:
+
+```{r format_shift_summary, eval = TRUE, echo = FALSE}
+library(napsreview)
+
+"extdata/issues/old_format_files.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tidyr::separate(file_name, into = c("pollutant", "year"), sep = "_") |>
+  dplyr::group_by(pollutant) |>
+  dplyr::summarise(years = sentence_range(as.integer(year))) |>
+  tidyr::unite(col = "text", pollutant, years, sep = ": ") |>
+  dplyr::pull(text) |>
+  paste(collapse = "\n") |>
+  cat()
+```
+
+## Site metadata are inconsistent
+
+Every entry in the raw NAPS data has latitude, longitude, province/territory, and city information.
+However, for many sites these values are inconsistent between files.
+
+For example, lat/lng values have differing precisions between files causing slight shifts in location.
+
+```{r inconsistent_coords, eval = TRUE, echo = FALSE}
+"extdata/issues/multiple_loc_sites.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |> 
+  dplyr::mutate(dplyr::across(c(lat, lng), as.character))
+```
+
+In addition, city names are inconsistently spelled between files
+
+```{r inconsistent_city_spelling, eval = TRUE, echo = FALSE}
+"extdata/issues/multiple_city_spellings.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble()
+```
+
+and some sites have multiple city names across files.
+
+```{r inconsistent_site_city, eval = TRUE, echo = FALSE}
+"extdata/issues/multiple_city_sites.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble()
+```
+
+## Some values are unrealistic
+
+Some values in the raw data are unrealistically high or low, coordinates exist that are outside Canada, and some site ids are not properly padded with leading zeros.
+
+Here is a sample of files/sites with negative concentrations:
+```{r negatives, eval = TRUE, echo = FALSE}
+"extdata/issues/invalid_values.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |> 
+  dplyr::filter(has_negatives) |> 
+  dplyr::select(file_name, site_ids)
+```
+
+Here is a sample of files/sites with concentrations above 2000:
+```{r extremes, eval = TRUE, echo = FALSE}
+"extdata/issues/invalid_values.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |> 
+  dplyr::filter(has_values_above_2000) |> 
+  dplyr::select(file_name, site_ids)
+```
+
+Here is a sample of files/sites with coordinates outside of Canada:
+```{r unrealistic_coords, eval = TRUE, echo = FALSE}
+"extdata/issues/invalid_values.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |> 
+  dplyr::filter(has_bad_lat_or_lng) |> 
+  dplyr::select(file_name, site_ids)
+```
+
+Here is a sample of files/sites with invalid site ids:
+```{r unrealistic_id, eval = TRUE, echo = FALSE}
+"extdata/issues/invalid_values.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |> 
+  dplyr::filter(has_bad_site_id) |> 
+  dplyr::select(file_name, site_ids)
+```
