@@ -430,3 +430,36 @@ set.
 100110](/inst/extdata/issues/monthly_cor_plots/100110_pm25_bcgov_pm25_naps.png)
 ![Monthly NO2 Correlations at Site
 100112](/inst/extdata/issues/monthly_cor_plots/100112_no2_bcgov_no2_naps.png)
+
+By mapping the locations of sites with allignment issues, we can see
+that the sites are all either in the metro-vancouver / lower fraser
+valley region, or east of the Rockies (where DST is not observed, and MT
+is in place instead of PT). The exception is Quesnel, however that site
+has a longitude issue that places it in Alberta for some years.
+
+The “east of the Rockies” issue further supports the hypothesis that the
+date misalignment occurs in the conversion to local hour when archiving
+the NAPS data. For the Vancouver area monitors the reason is less clear,
+but could be due to how air quality is managed in that region seperatley
+from the rest of the province.
+
+    #> `summarise()` has grouped output by 'site_id'. You can override using the
+    #> `.groups` argument.
+
+<figure>
+<img src="/inst/extdata/issues/misalignment_map.png"
+alt="Map of sites with alignment issues" />
+<figcaption aria-hidden="true">Map of sites with alignment
+issues</figcaption>
+</figure>
+
+    #> # A tibble: 5 × 11
+    #>   site_id prov_terr city      lat   lng tz_local          offset_local_standard
+    #>     <int> <chr>     <chr>   <dbl> <dbl> <chr>                             <dbl>
+    #> 1  101701 BC        Quesnel  53.0 -112. America/Edmonton                     -7
+    #> 2  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
+    #> 3  101701 BC        Quesnel  53.0 -112. America/Edmonton                     -7
+    #> 4  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
+    #> 5  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
+    #> # ℹ 4 more variables: offset_local_daylight <dbl>, years <chr>,
+    #> #   method_code_PM2.5 <int>, pollutants <chr>

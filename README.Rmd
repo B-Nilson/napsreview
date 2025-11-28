@@ -358,7 +358,7 @@ Here is a sample of the sites with persistent date misalignment issues (PM2.5 on
 "extdata/issues/pm25_site_alignment.csv" |>
   system.file(package = "napsreview") |>
   read.csv() |>
-  tibble::as_tibble() |> 
+  tibble::as_tibble() |>
   dplyr::select(-X) # TODO: don't write out row names
 ```
 
@@ -368,7 +368,7 @@ Here is a sample of the sites with date misalignment issues for specific years (
 "extdata/issues/pm25_annual_site_alignment.csv" |>
   system.file(package = "napsreview") |>
   read.csv() |>
-  tibble::as_tibble() |> 
+  tibble::as_tibble() |>
   dplyr::select(-X) # TODO: don't write out row names
 ```
 
@@ -376,3 +376,54 @@ And this becomes quite clear when looking at the monthly correlation between the
 
 ![Monthly PM2.5 Correlations at Site 100110](/inst/extdata/issues/monthly_cor_plots/100110_pm25_bcgov_pm25_naps.png)
 ![Monthly NO2 Correlations at Site 100112](/inst/extdata/issues/monthly_cor_plots/100112_no2_bcgov_no2_naps.png)
+
+
+By mapping the locations of sites with allignment issues, we can see that the sites are all either in the metro-vancouver / lower fraser valley region, or east of the Rockies (where DST is not observed, and MT is in place instead of PT). The exception is Quesnel, however that site has a longitude issue that places it in Alberta for some years. 
+
+The "east of the Rockies" issue further supports the hypothesis that the date misalignment occurs in the conversion to local hour when archiving the NAPS data. For the Vancouver area monitors the reason is less clear, but could be due to how air quality is managed in that region seperatley from the rest of the province.
+```{r misalignment_map, eval = TRUE, echo = FALSE}
+
+bad_sites <- "extdata/issues/pm25_annual_site_alignment.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |>
+  dplyr::distinct(naps_id) |>
+  dplyr::left_join(
+    "extdata/naps_meta.csv" |>
+      system.file(package = "napsreview") |>
+      read.csv() |>
+      dplyr::group_by(site_id, city) |>
+      dplyr::summarise(
+        dplyr::across(c(lat, lng), median)
+      ) |>
+      dplyr::distinct(site_id, .keep_all = TRUE),
+    by = c("naps_id" = "site_id")
+  ) |>
+  sf::st_as_sf(coords = c("lng", "lat"), crs = "WGS84")
+
+point_layers <- list(
+  aqmapr::PointLayer(
+    group = "NAPS sites",
+    data = bad_sites,
+    fill = "#ff5e00",
+    label = ~ paste0(naps_id, ": ", city)
+  )
+)
+# May need to run: webshot::install_phantomjs()
+aqmapr::make_leaflet_map(
+  point_layers = point_layers,
+  track_map_state = FALSE
+) |>
+  mapview::mapshot(file = "inst/extdata/issues/misalignment_map.png")
+
+```
+
+![Map of sites with alignment issues](/inst/extdata/issues/misalignment_map.png)
+
+```{r quesnel_issue, eval = TRUE, echo = FALSE}
+"extdata/naps_meta.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  dplyr::filter(site_id == 101701) |> 
+  tibble::as_tibble()
+```

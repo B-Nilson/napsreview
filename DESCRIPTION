@@ -11,12 +11,15 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports: 
     airquality,
+    aqhi,
+    aqmapr,
     arrow,
     data.table,
     DBI,
     dbplyr,
     duckdb,
     handyr (>= 0.0.0.9000),
+    leaflet,
     lutz,
     pbapply,
     RCurl,
