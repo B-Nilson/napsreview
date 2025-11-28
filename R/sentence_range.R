@@ -43,8 +43,9 @@ sentence_range <- function(x, reverse = FALSE) {
   is_threepeat <- ((x - dplyr::lag(x, default = -999999)) == 1 &
     (x - dplyr::lag(x, n = 2, default = -999999)) == 2)
   if (any(is_threepeat)) {
-    groups <- (which(is_threepeat) - dplyr::lag(which(is_threepeat))) |>
+    steps <- (which(is_threepeat) - dplyr::lag(which(is_threepeat))) |>
       handyr::swap(NA, with = 1)
+    groups <- cumsum(steps != 1)
     grouped <- unique(groups) |>
       sapply(\(g) {
         x[
