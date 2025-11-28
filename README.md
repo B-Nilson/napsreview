@@ -37,6 +37,10 @@ The NAPS dataset is split into annual files by pollutant. Below we
 download each of those files and dump them into a `duckdb` database, as
 well as format and combine them into a single dataset.
 
+We also want to compare with another source for the same dataset to
+check timestamp alignment, so we download and archive data from the BC
+Government for the same time period as the NAPS data collected.
+
 ``` r
 library(napsreview)
 desired_years <- 1974:2023
@@ -81,6 +85,21 @@ if (!DBI::dbExistsTable(db, "fmt_data")) {
       fmt_meta_tbl = "fmt_meta"
     )
 }
+
+# Get and archive bcgov data if needed
+if (!DBI::dbExistsTable(db, "bcgov_data")) {
+  date_range <- db |>
+    dplyr::tbl("raw_data") |>
+    dplyr::select(date = `Date//Date`) |>
+    dplyr::summarise(
+      min_date = min(date, na.rm = TRUE),
+      max_date = max(date, na.rm = TRUE)
+    ) |>
+    dplyr::collect()
+  date_range <- c(date_range$min_date, date_range$max_date)
+  db |>
+    get_and_archive_bcgov_data(date_range = date_range)
+}
 ```
 
 And you can check that worked and view the data using the following:
@@ -95,13 +114,14 @@ db <- connect_to_database(db_path)
 on.exit(DBI::dbDisconnect(db))
 
 # Print the first 10 rows of each table
-#   Note - these are lazy tables. 
-#   You need to pass to dplyr::collect() if 
+#   Note - these are lazy tables.
+#   You need to pass to dplyr::collect() if
 #   you want to query and load the data from the database
 db |> dplyr::tbl("raw_data")
 db |> dplyr::tbl("raw_data_headers")
 db |> dplyr::tbl("fmt_data")
 db |> dplyr::tbl("fmt_meta")
+db |> dplyr::tbl("bcgov_data")
 ```
 
 # Assess Validity
@@ -146,17 +166,17 @@ on.exit(DBI::dbDisconnect(db))
 # View encoding differences between versions (change path here if you did earlier as well)
 raw_data_dir <- "extdata/naps_raw" |>
   system.file(package = "napsreview")
-raw_data_dir |> 
+raw_data_dir |>
   file.path("PM25_2002.csv") |> # v1 file
   readLines(encoding = "UTF-8") |> # actually latin1
   stringr::str_subset("\xb5") |> # so non-standard characters are broken
   head()
-raw_data_dir |> 
+raw_data_dir |>
   file.path("PM25_2006.csv") |> # same file
   readLines(encoding = "latin1") |> # now we try latin1
   stringr::str_subset("\xb5") |> # so nothing broken
   head()
-raw_data_dir |> 
+raw_data_dir |>
   file.path("PM25_2006.csv") |> # v2 file
   readLines(encoding = "UTF-8") |> # UTF-8 as expected
   stringr::str_subset("\xb5") |> # so nothing broken
@@ -312,3 +332,101 @@ on data timezone, a standardized data format, and the ability to collect
 data programmatically, this issue has only been assessed for BC.
 However, it is likely that this issue affects data from across the
 country.
+
+Below we load in the BCgov/NAPS data alligned by naps_id and date, and
+test the correlation between the two datasets for each pollutant at
+various time lags. Given that these datasets should be essentially the
+same, the correlation should be near perfect (small differences could
+occure due to rounding or differing QAQC decisions). Sites years where
+the correlation goes from poor to near perfect after lagging the data
+have allignment issues.
+
+``` r
+library(napsreview)
+
+# Connect to database (change path here if you did earlier as well)
+db_path <- system.file("extdata", package = "napsreview") |>
+  file.path("naps.duckdb")
+db <- connect_to_database(db_path)
+on.exit(DBI::dbDisconnect(db))
+
+# View the bcgov/naps data aligned by naps_id and date
+db |> dplyr::tbl("bcgov_aligned_data")
+
+# Load the aligned data
+aligned_data <- db |>
+  dplyr::tbl("bcgov_aligned_data") |>
+  dplyr::collect() |>
+  # Censor negative values, round to nearest integer (NAPS data are integers)
+  dplyr::mutate(
+    dplyr::across(dplyr::ends_with(c("_naps", "_bcgov")), \(x) {
+      ifelse(x < 0, NA_real_, x) |> round(digits = 0)
+    })
+  )
+
+# Test alignment for each pollutant
+passed <- list()
+pollutants <- names(aligned_data) |>
+  stringr::str_subset("_bcgov$") |>
+  sub(pattern = "_bcgov$", replacement = "")
+issues_dir <- paste0("extdata/issues") |> # adjust as needed
+  system.file(package = "napsreview")
+for (pollutant in pollutants) {
+  passed[[pollutant]] <- aligned_data |>
+    check_date_alignment(
+      pollutant = pollutant,
+      value_cols = pollutant |> paste0("_", c("bcgov", "naps")),
+      name_cols = pollutant |> paste0("_", c("bcgov_lag", "naps_lag")),
+      save_issues_to = issues_dir
+    )
+}
+```
+
+Here is a sample of the sites with persistent date misalignment issues
+(PM2.5 only, but they exist for other pollutants). “\_lag_1” indicates
+that those data are lagged by 1 hour (i.e. those data are incorrectly
+shifted 1 hour later). Here all of the sites go from 70-90% correlation
+to 93-100% after lagging the NAPS data by 1 hour.
+
+    #> # A tibble: 9 × 6
+    #>   naps_id best_lag_a best_lag_b      best_cor nonlagged_cor mean_count
+    #>     <int> <chr>      <chr>              <dbl>         <dbl>      <dbl>
+    #> 1  101801 pm25_bcgov pm25_naps_lag_1    0.999         0.889     47164 
+    #> 2  101803 pm25_bcgov pm25_naps_lag_1    1             0.745     28084 
+    #> 3  103202 pm25_bcgov pm25_naps_lag_1    0.968         0.911     84559.
+    #> 4  103203 pm25_bcgov pm25_naps_lag_1    1             0.805     14511.
+    #> 5  103204 pm25_bcgov pm25_naps_lag_1    1             0.803     15936.
+    #> 6  103205 pm25_bcgov pm25_naps_lag_1    0.933         0.747     16987 
+    #> 7  105501 pm25_bcgov pm25_naps_lag_1    1             0.796     18064.
+    #> 8  105504 pm25_bcgov pm25_naps_lag_1    1.000         0.897     73324 
+    #> 9  106502 pm25_bcgov pm25_naps_lag_1    1             0.709     28518
+
+Here is a sample of the sites with date misalignment issues for specific
+years (PM2.5 only, but they exist for other pollutants). Here all of the
+sites go from 70-90% correlation to 93-100% after lagging the NAPS data
+by 1 hour.
+
+    #> # A tibble: 78 × 7
+    #>     year naps_id best_lag_a best_lag_b      best_cor nonlagged_cor mean_count
+    #>    <int>   <int> <chr>      <chr>              <dbl>         <dbl>      <dbl>
+    #>  1  2000  101701 pm25_bcgov pm25_naps_lag_1        1         0.830      6848.
+    #>  2  2001  101701 pm25_bcgov pm25_naps_lag_1        1         0.854      8675.
+    #>  3  2001  105501 pm25_bcgov pm25_naps_lag_1        1         0.829      6945.
+    #>  4  2002  101701 pm25_bcgov pm25_naps_lag_1        1         0.832      8249.
+    #>  5  2002  105501 pm25_bcgov pm25_naps_lag_1        1         0.777      8718.
+    #>  6  2003  101701 pm25_bcgov pm25_naps_lag_1        1         0.841      7290 
+    #>  7  2003  105501 pm25_bcgov pm25_naps_lag_1        1         0.780      2401.
+    #>  8  2004  101701 pm25_bcgov pm25_naps_lag_1        1         0.842      8537 
+    #>  9  2005  101803 pm25_bcgov pm25_naps_lag_1        1         0.641      4623.
+    #> 10  2005  103203 pm25_bcgov pm25_naps_lag_1        1         0.824      8459.
+    #> # ℹ 68 more rows
+
+And this becomes quite clear when looking at the monthly correlation
+between the two datasets. Here is two samples of that, see
+[monthly_cor_plots](/inst/extdata/issues/monthly_cor_plots) for the full
+set.
+
+![Monthly PM2.5 Correlations at Site
+100110](/inst/extdata/issues/monthly_cor_plots/100110_pm25_bcgov_pm25_naps.png)
+![Monthly NO2 Correlations at Site
+100112](/inst/extdata/issues/monthly_cor_plots/100112_no2_bcgov_no2_naps.png)
