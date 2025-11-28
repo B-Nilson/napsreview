@@ -14,10 +14,7 @@ test_that("naps data can be collected and archived", {
     expect_no_error()
 
   # Write raw data to database
-  if (
-    !DBI::dbExistsTable(db, "raw_data_v1") |
-      !DBI::dbExistsTable(db, "raw_data_v2")
-  ) {
+  if (!DBI::dbExistsTable(db, "raw_data")) {
     db |>
       archive_raw_naps_data(
         naps_data = naps_data,

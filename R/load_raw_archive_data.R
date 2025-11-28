@@ -1,8 +1,8 @@
 load_raw_archive_data <- function(collect = FALSE) {
   db <- connect_to_database()
 
-  v2_data <- db |>
-    dplyr::tbl("raw_data_v2") |>
+  raw_data <- db |>
+    dplyr::tbl("raw_data") |>
     dplyr::select(
       name,
       row_number,
@@ -20,35 +20,10 @@ load_raw_archive_data <- function(collect = FALSE) {
       values_to = "value"
     )
 
-  v1_data <- db |>
-    dplyr::tbl("raw_data_v1") |>
-    dplyr::select(
-      name,
-      row_number,
-      site_id = `NAPSID`,
-      prov_terr = `P/T`,
-      city = `City`,
-      lat = `Latitude`,
-      lng = `Longitude`,
-      date = `Date`,
-      dplyr::starts_with("H")
-    ) |>
-    dplyr::mutate(
-      date = dbplyr::sql(
-        "CAST(STRPTIME(CAST(Date AS VARCHAR), '%Y%m%d') AS DATE)"
-      )
-    ) |>
-    tidyr::pivot_longer(
-      dplyr::starts_with("H"),
-      names_to = "hour_local",
-      values_to = "value"
-    )
-  bound <- v1_data |> dplyr::union_all(v2_data)
-
   if (collect) {
-    bound <- bound |> dplyr::collect()
+    raw_data <- raw_data |> dplyr::collect()
     DBI::dbDisconnect(db)
   }
 
-  return(bound)
+  return(raw_data)
 }

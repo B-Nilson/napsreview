@@ -105,6 +105,63 @@ archive_raw_naps_data <- function(
       use_on_conflict = TRUE
     )
 
+  # Add View which combines v1 and v2 data
+  db |>
+    DBI::dbExecute(
+      '
+  CREATE VIEW IF NOT EXISTS raw_data AS
+    SELECT
+      name,
+      row_number,
+      Pollutant AS "Pollutant//Polluant",
+      Method    AS "Method Code//Code Méthode",
+      NAPSID    AS "NAPS ID//Identifiant SNPA",
+      City      AS "City//Ville",
+      "P/T"     AS "Province/Territory//Province/Territoire",
+      Latitude  AS "Latitude//Latitude",
+      Longitude AS "Longitude//Longitude",
+      CAST(STRPTIME(CAST(Date AS VARCHAR), \'%Y%m%d\') AS DATE) AS "Date//Date",
+      H01 AS "H01//H01",
+      H02 AS "H02//H02",
+      H03 AS "H03//H03",
+      H04 AS "H04//H04",
+      H05 AS "H05//H05",
+      H06 AS "H06//H06",
+      H07 AS "H07//H07",
+      H08 AS "H08//H08",
+      H09 AS "H09//H09",
+      H10 AS "H10//H10",
+      H11 AS "H11//H11",
+      H12 AS "H12//H12",
+      H13 AS "H13//H13",
+      H14 AS "H14//H14",
+      H15 AS "H15//H15",
+      H16 AS "H16//H16",
+      H17 AS "H17//H17",
+      H18 AS "H18//H18",
+      H19 AS "H19//H19",
+      H20 AS "H20//H20",
+      H21 AS "H21//H21",
+      H22 AS "H22//H22",
+      H23 AS "H23//H23",
+      H24 AS "H24//H24"
+    FROM raw_data_v1
+    UNION ALL
+    SELECT *
+    FROM raw_data_v2;
+'
+    )
+
+  db |>
+    DBI::dbExecute(
+      "
+  CREATE VIEW IF NOT EXISTS raw_data_headers AS
+    SELECT * FROM raw_data_headers_v1
+    UNION ALL
+    SELECT * FROM raw_data_headers_v2;
+  "
+    )
+
   # Add indices if not already existing
   db |>
     DBI::dbExecute(
