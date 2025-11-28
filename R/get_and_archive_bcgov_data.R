@@ -60,5 +60,42 @@ get_and_archive_bcgov_data <- function(db, date_range) {
       update_duplicates = FALSE,
       use_on_conflict = TRUE
     )
+
+  # Add View which aligns fmt_data and bcgov_data
+  db |>
+    DBI::dbExecute(
+      '
+  CREATE VIEW bcgov_aligned_data AS
+    SELECT LHS.*, pm25_naps, o3_naps, no2_naps
+    FROM (
+      SELECT
+        date_utc AS date,
+        site_id,
+        pm25_1hr AS pm25_bcgov,
+        o3_1hr AS o3_bcgov,
+        no2_1hr AS no2_bcgov,
+        pm25_1hr_instrument,
+        o3_1hr_instrument,
+        no2_1hr_instrument,
+        naps_id
+      FROM (
+        SELECT bcgov_data.*, naps_id
+        FROM bcgov_data
+        LEFT JOIN bcgov_meta
+          ON (bcgov_data.site_id = bcgov_meta.site_id)
+      ) q01
+      WHERE (NOT(REGEXP_MATCHES(naps_id, \',\')))
+    ) LHS
+    LEFT JOIN (
+      SELECT
+        site_id AS naps_id,
+        date,
+        "PM2.5" AS pm25_naps,
+        O3 AS o3_naps,
+        NO2 AS no2_naps
+      FROM fmt_data
+    ) RHS
+      ON (LHS.naps_id = RHS.naps_id AND LHS.date = RHS.date)'
+    )
   invisible()
 }

@@ -16,49 +16,22 @@ test_that("aligns with bcgov data", {
       get_and_archive_bcgov_data(date_range = date_range)
   }
 
-  # Join bcgov and naps data by naps_id and date
-  pol_cols <- c(
-    "pm25_bcgov" = "pm25_1hr",
-    "o3_bcgov" = "o3_1hr",
-    "no2_bcgov" = "no2_1hr",
-    "pm25_naps" = "PM2.5",
-    "o3_naps" = "O3",
-    "no2_naps" = "NO2"
-  )
-  shared_ids <- dplyr::tbl(db, "bcgov_meta") |>
-    dplyr::distinct(naps_id) |>
-    dplyr::pull(naps_id)
+  # Load bcgov and naps data aligned by naps_id and date
   aligned_data <- db |>
-    dplyr::tbl("bcgov_data") |>
-    dplyr::left_join(
-      db |> dplyr::tbl("bcgov_meta") |> dplyr::select(site_id, naps_id),
-      by = "site_id"
-    ) |>
-    # TODO: handle sites with multiple NAPS IDs (ignored for now)
-    dplyr::filter(!stringr::str_detect(naps_id, ",")) |>
-    dplyr::rename(date = date_utc, dplyr::any_of(pol_cols)) |>
-    dplyr::left_join(
-      db |>
-        dplyr::tbl("fmt_data") |>
-        # TODO: handle sites with multiple NAPS IDs (ignored for now)
-        dplyr::filter(site_id %in% !!shared_ids) |>
-        dplyr::select(
-          naps_id = site_id,
-          date,
-          dplyr::any_of(pol_cols)
-        ),
-      by = c("naps_id", "date")
-    ) |>
+    dplyr::tbl("bcgov_aligned_data") |>
     dplyr::collect() |>
     dplyr::mutate(
-      dplyr::across(dplyr::all_of(names(pol_cols)), \(x) {
+      dplyr::across(dplyr::ends_with(c("_naps", "_bcgov")),\(x) {
         ifelse(x < 0, NA_real_, x) |> round(digits = 0)
       })
     )
 
   # Test alignment for each pollutant
-  passed <- list("pm25" = list(), "o3" = list(), "no2" = list())
-  for (pollutant in names(passed)) {
+  passed <- list()
+  pollutants <- names(aligned_data) |> 
+    stringr::str_subset("_bcgov$") |> 
+    sub(pattern = "_bcgov$", replacement = "")
+  for (pollutant in pollutants) {
     value_cols <- pollutant |> paste0("_", c("bcgov", "naps"))
     name_cols <- pollutant |> paste0("_", c("bcgov_lag", "naps_lag"))
     issues_dir <- paste0("extdata/issues") |>
