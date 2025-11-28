@@ -11,8 +11,9 @@ test_that("aligns with bcgov data", {
         max_date = max(date, na.rm = TRUE)
       ) |>
       dplyr::collect()
-    c(date_range$min_date, date_range$max_date) |>
-      get_and_archive_bcgov_data()
+    date_range <- c(date_range$min_date, date_range$max_date)
+    db |>
+      get_and_archive_bcgov_data(date_range = date_range)
   }
 
   # Join bcgov and naps data by naps_id and date

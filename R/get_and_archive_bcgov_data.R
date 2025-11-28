@@ -1,4 +1,8 @@
-get_and_archive_bcgov_data <- function(date_range) {
+#' Get and archive bcgov data
+#'
+#' @param date_range A vector of two date/datetime objects specifying the range of dates to get data for.
+#' @export
+get_and_archive_bcgov_data <- function(db, date_range) {
   # Collect metadata over desired date range and match to NAPS metadata
   bcgov_meta <- date_range |>
     airquality::get_bcgov_stations(quiet = TRUE) |>
