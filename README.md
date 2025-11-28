@@ -269,6 +269,32 @@ and some sites have multiple city names across files.
     #> 10  100112        2 Vancouver | Metro Van - Vancouver                
     #> # ℹ 38 more rows
 
+## Invalid Metadata
+
+Throughout the files, the Yukon territory is marked with the old
+abbreviation “YK”, the official abbreviation is now “YT” and should be
+used. (see
+[here](https://www.noslangues-ourlanguages.gc.ca/en/writing-tips-plus/abbreviations-canadian-provinces-and-territories))
+
+    #> # A tibble: 1 × 2
+    #>   original official
+    #>   <chr>    <chr>   
+    #> 1 YU       YT
+
+For some sites/files, the coordinates are outside of the
+province/territory they are marked to be in - for some it appears to be
+a typo or rounding issue, but for a few it is a complely invalid
+longitude.
+
+    #> # A tibble: 5 × 7
+    #>   site_id lat       lng         prov_terr expected_prov_terr pollutants    years
+    #>     <int> <chr>     <chr>       <chr>     <chr>              <chr>         <chr>
+    #> 1  101701 52.981686 -112.493227 BC        AB                 NO2, O3, PM25 2000…
+    #> 2  129401 82.45083  -62.5056    NT        NU                 O3            2008…
+    #> 3  105604 49        -119.4625   BC        <NA>               NO2, O3, PM25 2004 
+    #> 4   64301 42.88472  -8148056    ON        <NA>               O3            1988…
+    #> 5   80801 50.34861  -10498333   SK        <NA>               NO2, O3       1992…
+
 ## Unrealistic Values
 
 Some values in the raw data are unrealistically high or low, coordinates
@@ -277,41 +303,28 @@ with leading zeros.
 
 Here is a sample of files/sites with negative concentrations:
 
-    #> # A tibble: 138 × 2
+    #> # A tibble: 131 × 2
     #>    file_name site_ids                                                           
     #>    <chr>     <chr>                                                              
-    #>  1 NO2_1974  050102, 070101, 030116, 060204, 060401, 050104, 050304, 090122, 06…
-    #>  2 NO2_1975  050102, 050110, 070101, 090114, 060505, 060602, 030116, 060204, 06…
-    #>  3 NO2_1976  060505, 060602, 061301, 050304, 090122, 050102, 060501, 060104, 07…
-    #>  4 NO2_1977  060414, 060505, 060602, 061301, 050109, 050304, 090122, 100110, 06…
-    #>  5 NO2_1978  060414, 060505, 060602, 061301, 050109, 050304, 090122, 100110, 06…
-    #>  6 NO2_1979  060403, 090130, 050104, 060413, 100106, 050115, 060415, 060501, 06…
-    #>  7 NO2_1980  030115, 100302, 050203, 061004, 050110, 050113, 060412, 080109, 05…
-    #>  8 NO2_1981  050110, 050113, 060105, 060412, 050102, 060418, 030115, 100302, 04…
-    #>  9 NO2_1982  060402, 061501, 070119, 090222, 100111, 060101, 040202, 050109, 05…
-    #> 10 NO2_1983  050102, 050103, 060418, 050110, 050113, 060105, 060412, 080109, 05…
-    #> # ℹ 128 more rows
+    #>  1 NO2_1974  050102, 060401, 060411, 050304, 090122, 070101, 030116, 060204, 05…
+    #>  2 NO2_1975  060403, 050102, 060505, 060602, 060401, 050112, 060411, 061201, 05…
+    #>  3 NO2_1976  060410, 060901, 060505, 060602, 061301, 050102, 060104, 070118, 05…
+    #>  4 NO2_1977  060410, 060901, 100109, 060414, 060505, 060602, 061301, 050102, 06…
+    #>  5 NO2_1978  060410, 060901, 100109, 060414, 060505, 060602, 061301, 050102, 05…
+    #>  6 NO2_1979  050102, 060403, 090130, 060410, 060901, 100109, 030115, 100302, 05…
+    #>  7 NO2_1980  060401, 030115, 100302, 050111, 060402, 061501, 070119, 090222, 10…
+    #>  8 NO2_1981  050104, 060413, 100106, 050110, 050113, 060105, 060412, 040202, 05…
+    #>  9 NO2_1982  050116, 060104, 070118, 100108, 060402, 061501, 070119, 090222, 10…
+    #> 10 NO2_1983  060403, 060417, 062601, 090130, 050102, 050103, 060418, 060414, 06…
+    #> # ℹ 121 more rows
 
 Here is a sample of files/sites with concentrations above 2000:
 
     #> # A tibble: 2 × 2
     #>   file_name site_ids                              
     #>   <chr>     <chr>                                 
-    #> 1 PM25_2016 094601, 090701, 090702, 090801, 090806
+    #> 1 PM25_2016 090801, 094601, 090806, 090701, 090702
     #> 2 PM25_2023 105504
-
-Here is a sample of files/sites with coordinates outside of Canada:
-
-    #> # A tibble: 7 × 2
-    #>   file_name site_ids
-    #>   <chr>     <chr>   
-    #> 1 NO2_1992  080801  
-    #> 2 NO2_1993  080801  
-    #> 3 O3_1988   064301  
-    #> 4 O3_1989   064301  
-    #> 5 O3_1990   064301  
-    #> 6 O3_1992   080801  
-    #> 7 O3_1993   080801
 
 Here is a sample of files/sites with invalid site ids:
 

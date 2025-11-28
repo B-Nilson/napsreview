@@ -255,6 +255,33 @@ and some sites have multiple city names across files.
   tibble::as_tibble()
 ```
 
+## Invalid Metadata
+
+Throughout the files, the Yukon territory is marked with the old abbreviation "YK", the official abbreviation is now "YT" and should be used.
+(see [here](https://www.noslangues-ourlanguages.gc.ca/en/writing-tips-plus/abbreviations-canadian-provinces-and-territories))
+
+```{r unofficial_pt, eval = TRUE, echo = FALSE}
+"extdata/issues/non_official_provinces.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |>
+  dplyr::filter(original != official)
+```
+
+For some sites/files, the coordinates are outside of the province/territory they are marked to be in - for some it appears to be a typo or rounding issue, but for a few it is a complely invalid longitude.
+
+```{r invalid_coords, eval = TRUE, echo = FALSE}
+"extdata/issues/out_of_province_coords.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |>
+  dplyr::mutate(
+    dplyr::across(c(lat, lng), as.character),
+    expected_prov_terr = expected_prov_terr |> handyr::swap("", with = NA)
+  ) |>
+  dplyr::arrange(expected_prov_terr, prov_terr)
+```
+
 ## Unrealistic Values
 
 Some values in the raw data are unrealistically high or low, coordinates exist that are outside Canada, and some site ids are not properly padded with leading zeros.
@@ -276,16 +303,6 @@ Here is a sample of files/sites with concentrations above 2000:
   read.csv() |>
   tibble::as_tibble() |>
   dplyr::filter(has_values_above_2000) |>
-  dplyr::select(file_name, site_ids)
-```
-
-Here is a sample of files/sites with coordinates outside of Canada:
-```{r unrealistic_coords, eval = TRUE, echo = FALSE}
-"extdata/issues/invalid_values.csv" |>
-  system.file(package = "napsreview") |>
-  read.csv() |>
-  tibble::as_tibble() |>
-  dplyr::filter(has_bad_lat_or_lng) |>
   dplyr::select(file_name, site_ids)
 ```
 

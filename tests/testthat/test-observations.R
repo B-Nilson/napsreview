@@ -58,8 +58,6 @@ test_that("values are within expected ranges", {
     dplyr::filter(value != -999) |>
     dplyr::mutate(
       site_id_6_letters = nchar(site_id) == 6,
-      lat_in_canada = lat |> dplyr::between(41, 84),
-      lng_in_canada = lng |> dplyr::between(-142, -52),
       value_above_0 = value > 0,
       value_lt_2000 = value < 2000
     )
@@ -71,8 +69,6 @@ test_that("values are within expected ranges", {
       dplyr::across(
         c(
           site_id_6_letters,
-          lat_in_canada,
-          lng_in_canada,
           value_above_0,
           value_lt_2000
         ),
@@ -82,8 +78,6 @@ test_that("values are within expected ranges", {
     ) |>
     dplyr::filter(
       site_id_6_letters < 1 |
-        lat_in_canada < 1 |
-        lng_in_canada < 1 |
         value_above_0 < 1 |
         value_lt_2000 < 1
     ) |>
@@ -97,7 +91,6 @@ test_that("values are within expected ranges", {
     dplyr::group_by(
       name,
       has_bad_site_id = site_id_6_letters < 1,
-      has_bad_lat_or_lng = lat_in_canada < 1 | lng_in_canada < 1,
       has_values_above_2000 = value_lt_2000 < 1,
       has_negatives = value_above_0 < 1
     ) |>
@@ -116,7 +109,7 @@ test_that("values are within expected ranges", {
     file.remove(issues_file)
   }
 
-  bad_ids <- bad_sites |> dplyr::filter(has_bad_site_id)
+  bad_ids <- bad_files |> dplyr::filter(has_bad_site_id)
   if (nrow(bad_ids) > 0) {
     problem_files <- bad_ids |>
       dplyr::pull(name) |>
@@ -128,16 +121,7 @@ test_that("values are within expected ranges", {
     )
   }
 
-  bad_coords <- bad_sites |> dplyr::filter(has_bad_lat_or_lng)
-  if (nrow(bad_coords) > 0) {
-    problem_files <- bad_coords |>
-      dplyr::pull(name) |>
-      sort() |>
-      paste(collapse = ", ")
-    warning("The following files have bad lat/lng values: ", problem_files)
-  }
-
-  negatives <- bad_sites |> dplyr::filter(has_negatives)
+  negatives <- bad_files |> dplyr::filter(has_negatives)
   if (nrow(negatives) > 0) {
     problem_files <- negatives |>
       dplyr::pull(name) |>
