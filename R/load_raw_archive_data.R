@@ -1,17 +1,21 @@
 load_raw_archive_data <- function(collect = FALSE) {
   db <- connect_to_database()
 
+  new_names <- c(
+    "name",
+    "row_number",
+    "site_id" = "NAPS ID//Identifiant SNPA",
+    "prov_terr" = "Province/Territory//Province/Territoire",
+    "city" = "City//Ville",
+    "lat" = "Latitude//Latitude",
+    "lng" = "Longitude//Longitude",
+    "date" = "Date//Date"
+  )
+
   raw_data <- db |>
     dplyr::tbl("raw_data") |>
     dplyr::select(
-      name,
-      row_number,
-      site_id = `NAPS ID//Identifiant SNPA`,
-      prov_terr = `Province/Territory//Province/Territoire`,
-      city = `City//Ville`,
-      lat = `Latitude//Latitude`,
-      lng = `Longitude//Longitude`,
-      date = `Date//Date`,
+      dplyr::all_of(new_names),
       dplyr::starts_with("H")
     ) |>
     tidyr::pivot_longer(

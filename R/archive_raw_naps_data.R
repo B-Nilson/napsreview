@@ -5,6 +5,7 @@
 #' @param raw_data_tbl The name of the table to write the raw data to. "_v1" and "_v2" will be appended to diffentiate the two versions of the files.
 #' @param raw_headers_tbl The name of the table to write the raw header data to (each NAPS files has a pre-data header with file info).
 #' @export
+#' @importFrom rlang .data
 archive_raw_naps_data <- function(
   db,
   naps_data,
@@ -63,7 +64,7 @@ archive_raw_naps_data <- function(
       table_name = raw_data_tbl |> paste0("_v1"),
       new_data = raw_data_v1 |>
         dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
-        dplyr::relocate(row_number, .after = name),
+        dplyr::relocate(row_number, .after = "name"),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
       update_duplicates = FALSE,
@@ -74,7 +75,7 @@ archive_raw_naps_data <- function(
       table_name = raw_data_tbl |> paste0("_v2"),
       new_data = raw_data_v2 |>
         dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
-        dplyr::relocate(row_number, .after = name),
+        dplyr::relocate(.data$row_number, .after = name),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
       update_duplicates = FALSE,
@@ -87,7 +88,7 @@ archive_raw_naps_data <- function(
       table_name = raw_headers_tbl |> paste0("_v1"),
       new_data = raw_headers_v1 |>
         dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
-        dplyr::relocate(row_number, .after = name),
+        dplyr::relocate(.data$row_number, .after = name),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
       update_duplicates = FALSE,

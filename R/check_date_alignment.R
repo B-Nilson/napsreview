@@ -44,7 +44,7 @@ check_date_alignment <- function(
         " and ",
         colnames(overall_cor)[best_index[2]]
       )
-      overall_cor |> write.csv(file = issue_file)
+      overall_cor |> utils::write.csv(file = issue_file)
     } else {
       if (file.exists(issue_file)) file.remove(issue_file)
     }
@@ -58,9 +58,12 @@ check_date_alignment <- function(
       group_names = "naps_id"
     )
   bad_sites <- site_cor |>
-    dplyr::select(-cor_matrix, -count_matrix) |>
-    dplyr::filter(best_lag_a != value_cols[1] | best_lag_b != value_cols[2]) |>
-    dplyr::filter(best_cor >= 0.9, mean_count >= 500)
+    dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
+    dplyr::filter(
+      .data$best_lag_a != value_cols[1] | .data$best_lag_b != value_cols[2],
+      .data$best_cor >= 0.9,
+      .data$mean_count >= 500
+    )
   issue_file <- save_issues_to |> file.path(issue_files$site)
   passed$site <- nrow(bad_sites) == 0
   if (!passed$site) {
@@ -71,7 +74,7 @@ check_date_alignment <- function(
           sprintf(x$naps_id, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_sites |> write.csv(file = issue_file)
+    bad_sites |> utils::write.csv(file = issue_file)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }
@@ -84,8 +87,10 @@ check_date_alignment <- function(
       group_names = "year"
     )
   bad_years <- annual_cor |>
-    dplyr::select(-cor_matrix, -count_matrix) |>
-    dplyr::filter(best_lag_a != value_cols[1] | best_lag_b != value_cols[2])
+    dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
+    dplyr::filter(
+      .data$best_lag_a != value_cols[1] | .data$best_lag_b != value_cols[2]
+    )
   issue_file <- save_issues_to |> file.path(issue_files$annual)
   passed$annual <- nrow(bad_years) == 0
   if (!passed$annual) {
@@ -96,7 +101,7 @@ check_date_alignment <- function(
           sprintf(x$year, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_years |> write.csv(file = issue_file)
+    bad_years |> utils::write.csv(file = issue_file)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }
@@ -109,23 +114,26 @@ check_date_alignment <- function(
       group_names = c("year", "naps_id")
     )
   bad_site_years <- annual_site_cor |>
-    dplyr::select(-cor_matrix, -count_matrix) |>
-    dplyr::filter(best_lag_a != value_cols[1] | best_lag_b != value_cols[2]) |>
-    dplyr::filter(best_cor >= 0.9, mean_count >= 500)
+    dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
+    dplyr::filter(
+      .data$best_lag_a != value_cols[1] | .data$best_lag_b != value_cols[2],
+      .data$best_cor >= 0.9,
+      .data$mean_count >= 500
+    )
   issue_file <- save_issues_to |> file.path(issue_files$annual_site)
   passed$annual_site <- nrow(bad_site_years) == 0
   if (!passed$annual_site) {
     bad_site_years |>
-      dplyr::arrange(naps_id, year) |>
-      dplyr::group_by(naps_id, best_lag_a, best_lag_b) |>
-      dplyr::summarise(years = sentence_range(year), .groups = "drop") |>
+      dplyr::arrange(.data$naps_id, .data$year) |>
+      dplyr::group_by(.data$naps_id, .data$best_lag_a, .data$best_lag_b) |>
+      dplyr::summarise(years = sentence_range(.data$year), .groups = "drop") |>
       apply(1, \(x) {
         x <- as.list(x)
         "For site %s and years %s, the best correlation is between %s and %s" |>
           sprintf(x$naps_id, x$years, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_site_years |> write.csv(file = issue_file)
+    bad_site_years |> utils::write.csv(file = issue_file)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }
@@ -134,7 +142,7 @@ check_date_alignment <- function(
   if (!all(unlist(passed))) {
     failed_sites <- bad_sites |>
       dplyr::bind_rows(bad_site_years) |>
-      dplyr::select(naps_id, best_lag_b) |>
+      dplyr::select(dplyr::any_of(c("naps_id", "best_lag_b"))) |>
       dplyr::distinct()
     cor_plots <- pol_lags |>
       dplyr::inner_join(
@@ -148,7 +156,7 @@ check_date_alignment <- function(
       ) |>
       tidyr::nest(.by = naps_id) |>
       dplyr::mutate(
-        plot = data |>
+        plot = .data$data |>
           handyr::for_each(
             .as_list = TRUE,
             .enumerate = TRUE,

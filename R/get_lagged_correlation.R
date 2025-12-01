@@ -5,14 +5,14 @@ get_lagged_correlation <- function(
   group_names = NULL
 ) {
   cor_tibble <- lagged_data |>
-    dplyr::filter(complete.cases(
+    dplyr::filter(stats::complete.cases(
       .data[[values_from[1]]],
       .data[[values_from[2]]]
     )) |>
     dplyr::group_by(dplyr::across(dplyr::all_of(c(group_names, names_from)))) |>
     dplyr::summarise(
       n = dplyr::n(),
-      cor = cor(
+      cor = stats::cor(
         .data[[values_from[1]]],
         .data[[values_from[2]]],
         use = "complete.obs"
@@ -28,7 +28,7 @@ get_lagged_correlation <- function(
   output <- cor_tibble |>
     tidyr::nest(.by = group_names) |>
     dplyr::mutate(
-      cor_matrix = lapply(data, \(group_data) {
+      cor_matrix = lapply(.data$data, \(group_data) {
         x <- group_data |>
           dplyr::select(dplyr::starts_with("cor_")) |>
           dplyr::rename_with(.cols = dplyr::everything(), .fn = \(x) {
@@ -39,7 +39,7 @@ get_lagged_correlation <- function(
         lagged_cor_matrix[-1, -1] <- NA # drop where both are lagged
         return(lagged_cor_matrix)
       }),
-      count_matrix = lapply(data, \(group_data) {
+      count_matrix = lapply(.data$data, \(group_data) {
         x <- group_data |>
           dplyr::select(dplyr::starts_with("n_")) |>
           dplyr::rename_with(.cols = dplyr::everything(), .fn = \(x) {
@@ -66,7 +66,7 @@ get_lagged_correlation <- function(
       nonlagged_cor = sapply(cor_matrix, \(x) x[1, 1]),
       mean_count = sapply(count_matrix, \(x) mean(x, na.rm = TRUE))
     ) |>
-    dplyr::select(-data)
+    dplyr::select(-"data")
 
   if (length(group_names) == 0) {
     output <- dplyr::pull(output, cor_matrix)[[1]]
@@ -74,6 +74,7 @@ get_lagged_correlation <- function(
   return(output)
 }
 
+#' @importFrom rlang `:=`
 add_lagged_columns <- function(
   data,
   row_id,

@@ -5,30 +5,35 @@ match_to_naps_meta <- function(meta, distance_threshold_km = 0.25) {
   # Match by sites by name (lowercase, non a-z removed)
   matched_names <- meta |>
     dplyr::mutate(
-      site_name_clean = tolower(site_name) |>
+      site_name_clean = tolower(.data$site_name) |>
         gsub(pattern = "[^a-z]", replacement = "")
     ) |>
-    dplyr::select(site_id, site_name_clean) |>
+    dplyr::select(dplyr::any_of(c("site_id", "site_name_clean"))) |>
     dplyr::inner_join(
       naps_meta |>
         dplyr::mutate(
-          site_name_clean = tolower(name) |>
+          site_name_clean = tolower(.data$name) |>
             gsub(pattern = "[^a-z]", replacement = "")
         ) |>
-        dplyr::select(naps_id = site_id, site_name_clean),
+        dplyr::select(dplyr::any_of(c(naps_id = "site_id", "site_name_clean"))),
       by = "site_name_clean"
     ) |>
-    dplyr::group_by(site_id) |>
-    dplyr::summarise(naps_id = paste(naps_id, collapse = ","))
+    dplyr::group_by(.data$site_id) |>
+    dplyr::summarise(naps_id = paste(.data$naps_id, collapse = ","))
 
   # Match by location (same 3 decimal place lat and lng)
   matched_locations <- meta |>
-    dplyr::mutate(dplyr::across(c(lat, lng), \(x) round(x, 3))) |>
-    dplyr::select(site_id, lat, lng) |>
+    dplyr::mutate(dplyr::across(
+      dplyr::all_of(c("lat", "lng")),
+      \(x) round(x, 3)
+    )) |>
+    dplyr::select(dplyr::any_of(c("site_id", "lat", "lng"))) |>
     dplyr::inner_join(
       naps_meta |>
-        dplyr::mutate(dplyr::across(c(lat, lng), \(x) round(x, 3))) |>
-        dplyr::select(naps_id = site_id, lat, lng),
+        dplyr::mutate(dplyr::across(
+          dplyr::all_of(c("lat", "lng")),
+          \(x) round(x, 3)
+        )),
       by = c("lat", "lng")
     ) |>
     dplyr::group_by(site_id) |>
@@ -43,15 +48,15 @@ match_to_naps_meta <- function(meta, distance_threshold_km = 0.25) {
   nearest_naps <- distance_matrix |> apply(1, which.min)
   nn_dist <- distance_matrix |> apply(1, \(x) x |> min())
   matched_proximity <- meta |>
-    dplyr::select(site_id) |>
+    dplyr::select(dplyr::any_of("site_id")) |>
     dplyr::mutate(
       naps_distance_km = round(nn_dist / 1000, 2),
       naps_id = naps_meta$site_id[nearest_naps]
     ) |>
-    dplyr::filter(naps_distance_km < distance_threshold_km) |>
-    dplyr::group_by(site_id) |>
+    dplyr::filter(.data$naps_distance_km < distance_threshold_km) |>
+    dplyr::group_by(.data$site_id) |>
     dplyr::summarise(
-      naps_id = paste(naps_id, collapse = ","),
+      naps_id = paste(.data$naps_id, collapse = ","),
       .groups = "drop"
     )
 
@@ -59,12 +64,12 @@ match_to_naps_meta <- function(meta, distance_threshold_km = 0.25) {
   matches <- matched_names |>
     dplyr::bind_rows(matched_locations, matched_proximity) |>
     dplyr::summarise(
-      naps_id = paste(naps_id, collapse = ","),
-      .by = site_id
+      naps_id = paste(.data$naps_id, collapse = ","),
+      .by = .data$site_id
     ) |>
     dplyr::rowwise() |>
     dplyr::mutate(
-      naps_id = naps_id |>
+      naps_id = .data$naps_id |>
         stringr::str_split_1(",") |>
         unique() |>
         sort() |>
@@ -124,23 +129,24 @@ get_naps_meta <- function(language = "en") {
   }
 
   # Cleanup (if english version)
+  new_names <- c(
+    site_id = "NAPS_ID",
+    name = "Station_Name",
+    status = "Status",
+    prov_terr = "P/T",
+    city = "City",
+    address = "Location_Address",
+    lat = "Latitude",
+    lng = "Longitude",
+    elev = "Elevation",
+    tz_offset = "Timezone",
+    combined_stations = "Combined_Stations"
+  )
   raw_meta |>
     # Select and rename columns
-    dplyr::select(
-      site_id = NAPS_ID,
-      name = Station_Name,
-      status = Status,
-      prov_terr = `P/T`,
-      city = City,
-      address = Location_Address,
-      lat = Latitude,
-      lng = Longitude,
-      elev = Elevation,
-      tz_offset = Timezone,
-      combined_stations = Combined_Stations
-    ) |>
+    dplyr::select(dplyr::all_of(new_names)) |>
     dplyr::mutate(
-      combined_stations = combined_stations |>
+      combined_stations = .data$combined_stations |>
         handyr::swap("", with = NA)
     )
 }

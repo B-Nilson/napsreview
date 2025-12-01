@@ -39,7 +39,7 @@ archive_fmt_naps_data <- function(
     })) |>
     dplyr::summarise(
       .by = -pollutant,
-      pollutants = paste0(pollutant, collapse = ","),
+      pollutants = paste0(.data$pollutant, collapse = ","),
     )
 
   # Write obs-related data to database
@@ -77,7 +77,7 @@ archive_fmt_naps_data <- function(
   db |>
     dplyr::tbl(fmt_meta_tbl) |>
     dplyr::collect() |>
-    write.csv(file.path(outdir, "naps_meta.csv"), row.names = FALSE)
+    utils::write.csv(file.path(outdir, "naps_meta.csv"), row.names = FALSE)
 }
 
 format_pollutant_data <- function(pollutant, naps_data) {
@@ -90,9 +90,7 @@ format_pollutant_data <- function(pollutant, naps_data) {
   # Split obs and meta data
   obs_data <- pol_data |>
     dplyr::select(
-      site_id,
-      date_raw,
-      date,
+      dplyr::all_of(c("site_id", "date_raw", "date")),
       dplyr::starts_with("method_code_"),
       dplyr::where(\(x) "units" %in% class(x))
     )
@@ -100,30 +98,30 @@ format_pollutant_data <- function(pollutant, naps_data) {
     dplyr::mutate(
       # Add pollutant/year columns
       pollutant = pollutant,
-      year = lubridate::year(date)
+      year = lubridate::year(.data$date)
     ) |>
     dplyr::distinct(
-      site_id,
-      year,
-      pollutant,
-      prov_terr,
-      city,
-      lat,
-      lng,
+      .data$site_id,
+      .data$year,
+      .data$pollutant,
+      .data$prov_terr,
+      .data$city,
+      .data$lat,
+      .data$lng,
       dplyr::pick(dplyr::starts_with("method_code_")),
-      tz_local,
-      offset_local_standard,
-      offset_local_daylight
+      .data$tz_local,
+      .data$offset_local_standard,
+      .data$offset_local_daylight
     ) |>
     dplyr::summarise(
-      .by = -year,
-      dplyr::across(-year, \(x) x[1]),
-      years = paste0(year, collapse = ","),
+      .by = -.data$year,
+      dplyr::across(-.data$year, \(x) x[1]),
+      years = paste0(.data$year, collapse = ","),
     ) |>
     dplyr::arrange(
-      site_id,
-      pollutant,
-      years,
+      "site_id",
+      "pollutant",
+      "years",
       dplyr::pick(dplyr::starts_with("method_code_"))
     )
   list(meta = meta_data, obs = obs_data)

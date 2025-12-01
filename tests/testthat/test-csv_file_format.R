@@ -26,7 +26,7 @@ test_that("file formats are consistent", {
       problem_files |> paste(collapse = ", ")
     )
     data.frame(file_name = problem_files) |>
-      write.csv(file = issues_file, row.names = FALSE)
+      utils::write.csv(file = issues_file, row.names = FALSE)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
   }

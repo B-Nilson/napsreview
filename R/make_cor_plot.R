@@ -5,7 +5,7 @@ make_cor_plot <- function(site_data, value_cols, name_cols, site_id) {
       date = lubridate::floor_date(.data$date, unit = "months")
     ) |>
     dplyr::summarise(
-      cor = cor(
+      cor = stats::cor(
         .data[[value_cols[1]]],
         .data[[value_cols[2]]],
         use = "pairwise.complete.obs"

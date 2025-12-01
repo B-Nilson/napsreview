@@ -45,7 +45,7 @@ format_naps_data <- function(naps_data_list) {
         .fn = \(x) paste0(x, "//", x)
       ) |>
       # Fix date formatting
-      dplyr::mutate(Date = as.character(Date) |> lubridate::ymd())
+      dplyr::mutate(Date = as.character(.data$Date) |> lubridate::ymd())
   }
 
   # Go from wide format to long and do some tidying
@@ -63,42 +63,43 @@ format_naps_data <- function(naps_data_list) {
     dplyr::select(dplyr::any_of(desired_columns)) |>
     # Drop missing or invalid values
     dplyr::filter(
-      !is.na(value) & value != -999 & value >= 0,
-      # canada bounds
-      lng > -142 & lng < -50,
-      lat < 90 & lat > 41
+      !is.na(.data$value) & .data$value != -999 & .data$value >= 0
     ) |>
     # cleanup
     dplyr::mutate(
       # Ensure site_id is character and add 0 back to left side if needed
-      site_id = site_id |>
+      site_id = .data$site_id |>
         as.character() |>
         stringr::str_pad(width = 6, side = "left", pad = "0"),
       # strip out "H" from local hour (comes from the header) and convert to integer
-      hour_local = stringr::str_split(hour_local, "//", simplify = TRUE)[, 1] |>
+      hour_local = stringr::str_split(
+        .data$hour_local,
+        pattern = "//",
+        simplify = TRUE
+      )[, 1] |>
         stringr::str_remove("H") |>
         as.integer(),
       # set units using header
-      value = value |> units::set_units(value_unit, mode = "standard"),
+      value = .data$value |> units::set_units(value_unit, mode = "standard"),
       # Fix city name variations
-      city = fix_city_names(city)
+      city = fix_city_names(.data$city)
     )
 
   # include timezone and lst/ldt offsets and convert dates to UTC
   fmtted_data <- naps_data_long |>
     get_site_tz_details(add = TRUE) |>
     dplyr::mutate(
-      date_raw = date |>
+      date_raw = .data$date |>
         format("%F") |>
-        paste(hour_local),
-      date = date |>
+        paste(.data$hour_local),
+      date = .data$date |>
         format("%F") |>
-        paste(hour_local - 1) |> # hours are 1 - 24, convert to 0-23
+        paste(.data$hour_local - 1) |> # hours are 1 - 24, convert to 0-23
         lubridate::ymd_h(tz = "UTC") - # convert to date, pretend already UTC (manually adjust from LST below)
         lubridate::minutes(round(offset_local_standard, digits = 1) * 60) + # LST -> UTC
         lubridate::hours(1) # fix 1-24 -> 0-23 conversion earlier
     ) |>
-    dplyr::select(-hour_local) |>
+    dplyr::select(-dplyr::any_of("hour_local")) |>
     dplyr::relocate(
       c(
         "date_raw",
@@ -111,8 +112,8 @@ format_naps_data <- function(naps_data_list) {
     ) |>
     # pollutant, method_code, value -> `POLLUTANT`, `POLLUTANT_method_code`
     tidyr::pivot_wider(
-      names_from = pollutant,
-      values_from = value
+      names_from = "pollutant",
+      values_from = "value"
     )
   if ("method_code" %in% colnames(fmtted_data)) {
     pol <- naps_data_long$pollutant[1]

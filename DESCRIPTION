@@ -17,15 +17,23 @@ Imports:
     data.table,
     DBI,
     dbplyr,
+    dplyr,
     duckdb,
+    ggplot2,
     handyr (>= 0.0.0.9000),
     leaflet,
+    lubridate,
     lutz,
     pbapply,
     RCurl,
+    rlang,
     sf,
+    stringdist,
     stringr,
-    units
+    tidyr,
+    tidyselect,
+    units,
+    withr
 Remotes: 
     B-Nilson/handyr
 Suggests: 

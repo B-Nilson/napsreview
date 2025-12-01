@@ -185,7 +185,7 @@ test_that("all coordinates are within the province the site is marked in", {
     file.remove(issues_file)
   }
 
-  expect_true(nrow(sites_with_multiple_cities) == 0)
+  expect_true(nrow(bad_files) == 0)
 })
 
 test_that("city names are consistent for each site", {
@@ -259,7 +259,7 @@ test_that("city names are consistently spelled", {
         paste(collapse = ", ")
     )
     cities_with_multiple_spellings |>
-      write.csv(file = issues_file, row.names = FALSE)
+      utils::write.csv(file = issues_file, row.names = FALSE)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
   }

@@ -5,3 +5,5 @@
 ^[.]?air[.]toml$
 ^\.vscode$
 ^README\.Rmd$
+^README_cache/.*
+^inst/extdata/.*

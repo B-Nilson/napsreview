@@ -88,13 +88,13 @@ download_naps_csv <- function(
     list(timeout = timeout),
     {
       if (!file.exists(local_file) | !check_exists) {
-        download.file(
-          csv_url,
-          local_file,
-          method = "libcurl",
-          mode = "wb",
-          quiet = TRUE
-        ) |>
+        csv_url |>
+          utils::download.file(
+            destfile = local_file,
+            method = "libcurl",
+            mode = "wb",
+            quiet = TRUE
+          ) |>
           handyr::on_error(.return = NULL)
       }
     }
@@ -132,7 +132,7 @@ read_naps_csv <- function(csv_file) {
     stringr::str_split(pattern = ", ?|: ", simplify = TRUE)
   colnames(header) <- paste0("V", seq_len(ncol(header)))
   header <- dplyr::as_tibble(header) |>
-    dplyr::select(label = V1, value = V2)
+    dplyr::select(label = "V1", value = "V2")
 
   # Extract obs. data
   data <- csv_lines[-header_rows] |>

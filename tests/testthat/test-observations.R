@@ -104,7 +104,7 @@ test_that("values are within expected ranges", {
   if (nrow(bad_files) > 0) {
     bad_files |>
       dplyr::rename(file_name = name) |>
-      write.csv(file = issues_file, row.names = FALSE)
+      utils::write.csv(file = issues_file, row.names = FALSE)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
   }
