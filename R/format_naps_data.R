@@ -134,7 +134,8 @@ fix_coordinates <- function(fmtted_data) {
     dplyr::mutate(
       lat = dplyr::case_when(
         # Fix missing decimals
-        .data$site_id == "105604" ~ 49.05584
+        .data$site_id == "105604" ~ 49.05584,
+        TRUE ~ .data$lat
       ),
       lng = dplyr::case_when(
         # Fix apparent typo of "-112.493227" which places the site in AB, not BC
@@ -143,7 +144,8 @@ fix_coordinates <- function(fmtted_data) {
         .data$site_id == "91001" ~ -110.20653,
         # Fix missing decimal creating large negative number
         .data$lng == -8148056 ~ -81.48056,
-        .data$lng == -10498333 ~ -104.98333
+        .data$lng == -10498333 ~ -104.98333,
+        TRUE ~ .data$lng
       )
     )
 }
