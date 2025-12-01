@@ -83,7 +83,9 @@ format_naps_data <- function(naps_data_list) {
       value = .data$value |> units::set_units(value_unit, mode = "standard"),
       # Fix city name variations
       city = fix_city_names(.data$city)
-    )
+    ) |> 
+    # Fix invalid coordinates present in some files
+    fix_coordinates()
 
   # include timezone and lst/ldt offsets and convert dates to UTC
   fmtted_data <- naps_data_long |>
@@ -124,6 +126,26 @@ format_naps_data <- function(naps_data_list) {
       )
   }
   return(fmtted_data)
+}
+
+fix_coordinates <- function(fmtted_data) {
+  fmtted_data |>
+    # Manually correct some coordinates
+    dplyr::mutate(
+      lat = dplyr::case_when(
+        # Fix missing decimals
+        .data$site_id == "105604" ~ 49.05584
+      ),
+      lng = dplyr::case_when(
+        # Fix apparent typo of "-112.493227" which places the site in AB, not BC
+        .data$site_id == "101701" ~ -122.49323, 
+        # Fix missing decimals
+        .data$site_id == "91001" ~ -110.20653,
+        # Fix missing decimal creating large negative number
+        .data$lng == -8148056 ~ -81.48056,
+        .data$lng == -10498333 ~ -104.98333
+      )
+    )
 }
 
 fix_city_names <- function(cities) {
