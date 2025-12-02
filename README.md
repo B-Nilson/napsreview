@@ -282,7 +282,7 @@ full list.
     #> # ℹ 242 more rows
 
 In addition, city names are inconsistently spelled between files - see
-[here](inst/extdata/issues/wrong_precision_coord_sites.csv) for the full
+[here](inst/extdata/issues/multiple_city_spellings.csv) for the full
 list
 
     #> # A tibble: 27 × 2
@@ -334,10 +334,11 @@ of issues.
     #> 1 YU       YT
 
 For some sites/files, the coordinates are outside of the
-province/territory they are marked to be in - for some it appears to be
-a typo or rounding issue, but for a few it is a complely invalid
-longitude. See [here](inst/extdata/issues/out_of_province_coords.csv)
-for the full list of issues.
+province/territory they are marked to be in. For some it appears to be a
+typo or rounding issue, but for a few it seems the deicimal was not
+included in the longitude, producing an extremely negative value. See
+[here](inst/extdata/issues/out_of_province_coords.csv) for the full list
+of issues.
 
     #> # A tibble: 5 × 7
     #>   site_id lat       lng         prov_terr expected_prov_terr pollutants    years
@@ -398,9 +399,9 @@ Below we load in the BCgov/NAPS data alligned by naps_id and date, and
 test the correlation between the two datasets for each pollutant at
 various time lags. Given that these datasets should be essentially the
 same, the correlation should be near perfect (small differences could
-occure due to rounding or differing QAQC decisions). Sites years where
-the correlation goes from poor to near perfect after lagging the data
-have allignment issues.
+occur due to rounding or differing QAQC decisions). Sites/years where
+the correlation goes from poor-good to near perfect after lagging the
+data have allignment issues.
 
 ``` r
 library(napsreview)
@@ -444,7 +445,7 @@ for (pollutant in pollutants) {
 ```
 
 Here is a sample of the sites with persistent date misalignment issues
-(PM2.5 only, but they exist for other pollutants. “\_lag_1” indicates
+(PM2.5 only, but they exist for other pollutants). “\_lag_1” indicates
 that those data are lagged by 1 hour (i.e. those data are incorrectly
 shifted 1 hour later). Here all of the sites go from 70-90% correlation
 to 93-100% after lagging the NAPS data by 1 hour. See the following for
@@ -489,10 +490,12 @@ by 1 hour. See the following for the full lists for:
     #> 10  2006  103203 pm25_bcgov pm25_naps_lag_1    1             0.780      6051.
     #> # ℹ 63 more rows
 
-And this becomes quite clear when looking at the monthly correlation
-between the two datasets. Here is two samples of that, see
+And this issue becomes quite clear when looking at the monthly
+correlation between the two datasets. Here is two samples of that, see
 [monthly_cor_plots](/inst/extdata/issues/monthly_cor_plots) for the full
-set.
+set. Note how for some sites, specific years appear to be shifted while
+others are not, and for other sites the shift is consistent across
+years.
 
 ![](/inst/extdata/issues/monthly_cor_plots/100110_pm25_bcgov_pm25_naps.png)
 ![](/inst/extdata/issues/monthly_cor_plots/100112_no2_bcgov_no2_naps.png)
@@ -501,19 +504,7 @@ set.
 By mapping the locations of sites with allignment issues, we can see
 that the sites are all either in the metro-vancouver / lower fraser
 valley region, or east of the Rockies (where DST is not observed, and MT
-is in place instead of PT). The exception is Quesnel, however that site
-has a longitude issue that places it in Alberta for some years.
-
-    #> # A tibble: 5 × 11
-    #>   site_id prov_terr city      lat   lng tz_local          offset_local_standard
-    #>     <int> <chr>     <chr>   <dbl> <dbl> <chr>                             <dbl>
-    #> 1  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
-    #> 2  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
-    #> 3  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
-    #> 4  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
-    #> 5  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
-    #> # ℹ 4 more variables: offset_local_daylight <dbl>, years <chr>,
-    #> #   method_code_PM2.5 <int>, pollutants <chr>
+is in place instead of PT).
 
 The “east of the Rockies” issue further supports the hypothesis that the
 date misalignment occurs in the conversion to local hour when archiving

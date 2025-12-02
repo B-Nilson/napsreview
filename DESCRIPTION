@@ -30,7 +30,8 @@ Remotes:
 Suggests: 
     dbplyr,
     pbapply,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    webshot
 Config/testthat/edition: 3
 URL: https://github.com/B-Nilson/napsreview
 BugReports: https://github.com/B-Nilson/napsreview/issues

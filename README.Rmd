@@ -256,7 +256,7 @@ and here is a sample of all sites with more than 1 level of precision for their 
   dplyr::mutate(dplyr::across(c(lat, lng), as.character))
 ```
 
-In addition, city names are inconsistently spelled between files -  see [here](inst/extdata/issues/wrong_precision_coord_sites.csv) for the full list
+In addition, city names are inconsistently spelled between files -  see [here](inst/extdata/issues/multiple_city_spellings.csv) for the full list
 
 ```{r inconsistent_city_spelling, eval = TRUE, echo = FALSE}
 "extdata/issues/multiple_city_spellings.csv" |>
@@ -288,7 +288,7 @@ Throughout the files, the Yukon territory is marked with the old abbreviation "Y
   dplyr::filter(original != official)
 ```
 
-For some sites/files, the coordinates are outside of the province/territory they are marked to be in - for some it appears to be a typo or rounding issue, but for a few it is a complely invalid longitude. See [here](inst/extdata/issues/out_of_province_coords.csv) for the full list of issues.
+For some sites/files, the coordinates are outside of the province/territory they are marked to be in. For some it appears to be a typo or rounding issue, but for a few it seems the deicimal was not included in the longitude, producing an extremely negative value. See [here](inst/extdata/issues/out_of_province_coords.csv) for the full list of issues.
 
 ```{r invalid_coords, eval = TRUE, echo = FALSE}
 "extdata/issues/out_of_province_coords.csv" |>
@@ -334,8 +334,8 @@ Given the presence of the BC Government archive with clear documentation on data
 
 Below we load in the BCgov/NAPS data alligned by naps_id and date, 
 and test the correlation between the two datasets for each pollutant at various time lags.
-Given that these datasets should be essentially the same, the correlation should be near perfect (small differences could occure due to rounding or differing QAQC decisions). 
-Sites years where the correlation goes from poor to near perfect after lagging the data have allignment issues. 
+Given that these datasets should be essentially the same, the correlation should be near perfect (small differences could occur due to rounding or differing QAQC decisions). 
+Sites/years where the correlation goes from poor-good to near perfect after lagging the data have allignment issues. 
 
 ```{r date_misalignment, eval = FALSE}
 library(napsreview)
@@ -379,7 +379,7 @@ for (pollutant in pollutants) {
 
 ```
 
-Here is a sample of the sites with persistent date misalignment issues (PM2.5 only, but they exist for other pollutants. "_lag_1" indicates that those data are lagged by 1 hour (i.e. those data are incorrectly shifted 1 hour later). Here all of the sites go from 70-90% correlation to 93-100% after lagging the NAPS data by 1 hour. See the following for the full lists for: [PM2.5](inst/extdata/issues/pm25_site_alignment.csv), [O3](inst/extdata/issues/o3_site_alignment.csv), [NO2](inst/extdata/issues/no2_site_alignment.csv).
+Here is a sample of the sites with persistent date misalignment issues (PM2.5 only, but they exist for other pollutants). "_lag_1" indicates that those data are lagged by 1 hour (i.e. those data are incorrectly shifted 1 hour later). Here all of the sites go from 70-90% correlation to 93-100% after lagging the NAPS data by 1 hour. See the following for the full lists for: [PM2.5](inst/extdata/issues/pm25_site_alignment.csv), [O3](inst/extdata/issues/o3_site_alignment.csv), [NO2](inst/extdata/issues/no2_site_alignment.csv).
 
 ```{r site_alignment, eval = TRUE, echo = FALSE}
 "extdata/issues/pm25_site_alignment.csv" |>
@@ -397,21 +397,13 @@ Here is a sample of the sites with date misalignment issues for specific years (
   tibble::as_tibble()
 ```
 
-And this becomes quite clear when looking at the monthly correlation between the two datasets. Here is two samples of that, see [monthly_cor_plots](/inst/extdata/issues/monthly_cor_plots) for the full set.
+And this issue becomes quite clear when looking at the monthly correlation between the two datasets. Here is two samples of that, see [monthly_cor_plots](/inst/extdata/issues/monthly_cor_plots) for the full set. Note how for some sites, specific years appear to be shifted while others are not, and for other sites the shift is consistent across years.
 
 ![](/inst/extdata/issues/monthly_cor_plots/100110_pm25_bcgov_pm25_naps.png)
 ![](/inst/extdata/issues/monthly_cor_plots/100112_no2_bcgov_no2_naps.png)
 ![](/inst/extdata/issues/monthly_cor_plots/105504_o3_bcgov_o3_naps.png)
 
-By mapping the locations of sites with allignment issues, we can see that the sites are all either in the metro-vancouver / lower fraser valley region, or east of the Rockies (where DST is not observed, and MT is in place instead of PT). The exception is Quesnel, however that site has a longitude issue that places it in Alberta for some years. 
-
-```{r quesnel_issue, eval = TRUE, echo = FALSE}
-"extdata/naps_meta.csv" |>
-  system.file(package = "napsreview") |>
-  read.csv() |>
-  dplyr::filter(site_id == 101701) |>
-  tibble::as_tibble()
-```
+By mapping the locations of sites with allignment issues, we can see that the sites are all either in the metro-vancouver / lower fraser valley region, or east of the Rockies (where DST is not observed, and MT is in place instead of PT). 
 
 The "east of the Rockies" issue further supports the hypothesis that the date misalignment occurs in the conversion to local hour when archiving the NAPS data. For the Vancouver area monitors the reason is less clear, but could be due to how air quality is managed in that region seperatley from the rest of the province.
 
@@ -445,6 +437,9 @@ point_layers <- list(
   )
 )
 # May need to run: webshot::install_phantomjs()
+if (!rlang::is_installed("webshot")) {
+  install.packages("webshot")
+}
 aqmapr::make_leaflet_map(
   point_layers = point_layers,
   track_map_state = FALSE
