@@ -9,12 +9,12 @@ test_that("site coordinates are consistent across files", {
   multiple_loc_sites <- raw_data |>
     dplyr::group_by(site_id, lat, lng) |>
     dplyr::distinct(name) |>
+    dplyr::collect() |>
     dplyr::summarise(
-      files = stringr::str_flatten(name, collapse = ", "),
+      files = name |> sort() |> paste(collapse = ", "),
       .groups = "drop"
     ) |>
-    dplyr::filter(dplyr::n() > 1, .by = site_id) |>
-    dplyr::collect()
+    dplyr::filter(dplyr::n() > 1, .by = site_id)
 
   # Warn if there are any, and save to file (or old remove file if no issues)
   if (nrow(multiple_loc_sites) > 0) {
@@ -201,13 +201,13 @@ test_that("city names are consistent for each site", {
   # TODO: get all problem files and entries for each
   sites_with_multiple_cities <- raw_data |>
     dplyr::distinct(site_id, city) |>
+    dplyr::collect() |>
     dplyr::group_by(site_id) |>
     dplyr::summarise(
       n_cities = dplyr::n(),
-      cities = stringr::str_flatten(city, collapse = " | ")
+      cities = city |> sort() |> paste(collapse = " | ")
     ) |>
-    dplyr::filter(n_cities > 1) |>
-    dplyr::collect()
+    dplyr::filter(n_cities > 1)
 
   # Warn if there are any, and save to file (or old remove file if no issues)
   if (nrow(sites_with_multiple_cities) > 0) {
@@ -250,7 +250,7 @@ test_that("city names are consistently spelled", {
     ) |>
     dplyr::group_by(prov_terr, similiar_cities) |>
     dplyr::summarise(
-      cities = stringr::str_flatten(city, collapse = " | "),
+      cities = city |> sort() |> paste(collapse = " | "),
       .groups = "drop"
     ) |>
     dplyr::select(-similiar_cities)
@@ -264,7 +264,7 @@ test_that("city names are consistently spelled", {
         paste(collapse = ", ")
     )
     cities_with_multiple_spellings |>
-      dplyr::arrange(cities) |>
+      dplyr::arrange(prov_terr, cities) |>
       utils::write.csv(file = issues_file, row.names = FALSE)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
@@ -289,13 +289,13 @@ test_that("lat/lng values have consistent precision", {
     dplyr::left_join(
       raw_data |>
         dplyr::distinct(site_id, lat, lng, file_name = name) |>
+        dplyr::collect() |> 
         dplyr::group_by(site_id, lat, lng) |>
         dplyr::summarise(
-          files = file_name |> stringr::str_flatten(collapse = ", "),
+          files = file_name |> sort() |> paste(collapse = ", "),
           .groups = "drop"
         ),
-      by = c("lat", "lng"),
-      copy = TRUE
+      by = c("lat", "lng")
     ) |>
     dplyr::arrange(site_id, lat_precision, lng_precision) |>
     dplyr::relocate(c("site_id", "lat_precision", "lng_precision"), .before = 1)
@@ -316,7 +316,7 @@ test_that("lat/lng values have consistent precision", {
         paste(collapse = ", ")
     )
     multiple_precision |>
-      dplyr::arrange(site_id, lat_precision, lng_precision) |>
+      dplyr::arrange(site_id, lat_precision, lng_precision, lat, lng, files) |>
       utils::write.csv(file = issues_file, row.names = FALSE)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
@@ -340,13 +340,13 @@ test_that("coordinates have 5 decimal places", {
     dplyr::left_join(
       raw_data |>
         dplyr::distinct(site_id, lat, lng, file_name = name) |>
+        dplyr::collect() |> 
         dplyr::group_by(site_id, lat, lng) |>
         dplyr::summarise(
-          files = file_name |> stringr::str_flatten(collapse = ", "),
+          files = file_name |> sort() |> paste(collapse = ", "),
           .groups = "drop"
         ),
-      by = c("lat", "lng"),
-      copy = TRUE
+      by = c("lat", "lng")
     ) |>
     dplyr::arrange(site_id, lat_precision, lng_precision) |>
     dplyr::relocate(c("site_id", "lat_precision", "lng_precision"), .before = 1)

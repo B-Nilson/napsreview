@@ -95,7 +95,7 @@ test_that("values are within expected ranges", {
       has_negatives = value_above_0 < 1
     ) |>
     dplyr::summarise(
-      site_ids = paste(site_id, collapse = ", "),
+      site_ids = site_id |> sort() |> paste(collapse = ", "),
       .groups = "drop"
     )
 
