@@ -83,7 +83,7 @@ format_naps_data <- function(naps_data_list) {
       value = .data$value |> units::set_units(value_unit, mode = "standard"),
       # Fix city name variations
       city = fix_city_names(.data$city)
-    ) |> 
+    ) |>
     # Fix invalid coordinates present in some files
     fix_coordinates()
 
@@ -139,7 +139,7 @@ fix_coordinates <- function(fmtted_data) {
       ),
       lng = dplyr::case_when(
         # Fix apparent typo of "-112.493227" which places the site in AB, not BC
-        .data$site_id == "101701" ~ -122.49323, 
+        .data$site_id == "101701" ~ -122.49323,
         # Fix missing decimals
         .data$site_id == "91001" ~ -110.20653,
         # Fix missing decimal creating large negative number

@@ -182,7 +182,7 @@ test_that("all coordinates are within the province the site is marked in", {
         sort() |>
         paste(collapse = ", ")
     )
-    bad_files |> 
+    bad_files |>
       dplyr::arrange(site_id) |>
       data.table::fwrite(file = issues_file)
   } else if (file.exists(issues_file)) {
