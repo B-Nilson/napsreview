@@ -208,7 +208,7 @@ db |>
 ```
 
 These files have been identified as having the old format - see
-[here](extdata/issues/old_format_files.csv) for the full list:
+[here](inst/extdata/issues/old_format_files.csv) for the full list:
 
     #> NO2: 1974-2001, 2003 and 2004
     #> O3: 1974-2001, 2003 and 2004
@@ -222,7 +222,7 @@ values are inconsistent between files.
 
 For example, lat/lng values have differ between files causing
 slight/major shifts in location - see
-[here](extdata/issues/multiple_loc_sites.csv) for the full list.
+[here](inst/extdata/issues/multiple_loc_sites.csv) for the full list.
 
     #> # A tibble: 308 × 4
     #>    site_id lat       lng        files                                           
@@ -243,7 +243,7 @@ Sometimes this coordinate shift is due to a change in precision (number
 of decimals) kept for the latitude/longitude. 5 decimals is the most
 common (and the expected level of precision), but a range of decimals
 exist. Here is a sample, see
-[here](extdata/issues/wrong_precision_coord_sites.csv) for the full
+[here](inst/extdata/issues/wrong_precision_coord_sites.csv) for the full
 list.
 
     #> # A tibble: 124 × 6
@@ -263,8 +263,8 @@ list.
 
 and here is a sample of all sites with more than 1 level of precision
 for their lat/lng values, see
-[here](extdata/issues/multiple_precision_coord_sites.csv) for the full
-list.
+[here](inst/extdata/issues/multiple_precision_coord_sites.csv) for the
+full list.
 
     #> # A tibble: 252 × 7
     #>    site_id     n lat_precision lng_precision lat       lng        files         
@@ -282,7 +282,8 @@ list.
     #> # ℹ 242 more rows
 
 In addition, city names are inconsistently spelled between files - see
-[here](extdata/issues/wrong_precision_coord_sites.csv) for the full list
+[here](inst/extdata/issues/wrong_precision_coord_sites.csv) for the full
+list
 
     #> # A tibble: 27 × 2
     #>    prov_terr cities                             
@@ -300,7 +301,7 @@ In addition, city names are inconsistently spelled between files - see
     #> # ℹ 17 more rows
 
 and some sites have multiple city names across files - see
-[here](extdata/issues/multiple_city_sites.csv) for the full list.
+[here](inst/extdata/issues/multiple_city_sites.csv) for the full list.
 
     #> # A tibble: 48 × 3
     #>    site_id n_cities cities                                                  
@@ -324,8 +325,8 @@ abbreviation “YK”, the official abbreviation is now “YT” and should be
 used. (see
 [here](https://www.noslangues-ourlanguages.gc.ca/en/writing-tips-plus/abbreviations-canadian-provinces-and-territories)
 for the source of the official names). See
-[here](extdata/issues/non_official_provinces.csv) for the full list of
-issues.
+[here](inst/extdata/issues/non_official_provinces.csv) for the full list
+of issues.
 
     #> # A tibble: 1 × 2
     #>   original official
@@ -335,8 +336,8 @@ issues.
 For some sites/files, the coordinates are outside of the
 province/territory they are marked to be in - for some it appears to be
 a typo or rounding issue, but for a few it is a complely invalid
-longitude. See [here](extdata/issues/out_of_province_coords.csv) for the
-full list of issues.
+longitude. See [here](inst/extdata/issues/out_of_province_coords.csv)
+for the full list of issues.
 
     #> # A tibble: 5 × 7
     #>   site_id lat       lng         prov_terr expected_prov_terr pollutants    years
@@ -352,7 +353,7 @@ full list of issues.
 Some values in the raw data are unrealistically high or low.
 
 Here is a sample of files/sites with negative concentrations - see
-[here](extdata/issues/invalid_values.csv) for the full list:
+[here](inst/extdata/issues/invalid_values.csv) for the full list:
 
     #> # A tibble: 131 × 2
     #>    file_name site_ids                                                           
@@ -370,7 +371,7 @@ Here is a sample of files/sites with negative concentrations - see
     #> # ℹ 121 more rows
 
 Here is a sample of files/sites with concentrations above 2000 - see
-[here](extdata/issues/invalid_values.csv) for the full list:
+[here](inst/extdata/issues/invalid_values.csv) for the full list:
 
     #> # A tibble: 2 × 2
     #>   file_name site_ids                              
@@ -447,9 +448,10 @@ Here is a sample of the sites with persistent date misalignment issues
 that those data are lagged by 1 hour (i.e. those data are incorrectly
 shifted 1 hour later). Here all of the sites go from 70-90% correlation
 to 93-100% after lagging the NAPS data by 1 hour. See the following for
-the full lists for: [PM2.5](extdata/issues/pm25_site_alignment.csv),
-[O3](extdata/issues/o3_site_alignment.csv),
-[NO2](extdata/issues/no2_site_alignment.csv).
+the full lists for:
+[PM2.5](inst/extdata/issues/pm25_site_alignment.csv),
+[O3](inst/extdata/issues/o3_site_alignment.csv),
+[NO2](inst/extdata/issues/no2_site_alignment.csv).
 
     #> # A tibble: 9 × 6
     #>   naps_id best_lag_a best_lag_b      best_cor nonlagged_cor mean_count
@@ -468,9 +470,9 @@ Here is a sample of the sites with date misalignment issues for specific
 years (PM2.5 only, but they exist for other pollutants). Here all of the
 sites go from 70-90% correlation to 93-100% after lagging the NAPS data
 by 1 hour. See the following for the full lists for:
-[PM2.5](extdata/issues/pm25_annual_site_alignment.csv),
-[O3](extdata/issues/o3_annual_site_alignment.csv),
-[NO2](extdata/issues/no2_annual_site_alignment.csv).
+[PM2.5](inst/extdata/issues/pm25_annual_site_alignment.csv),
+[O3](inst/extdata/issues/o3_annual_site_alignment.csv),
+[NO2](inst/extdata/issues/no2_annual_site_alignment.csv).
 
     #> # A tibble: 73 × 7
     #>     year naps_id best_lag_a best_lag_b      best_cor nonlagged_cor mean_count
