@@ -137,6 +137,8 @@ Several relatively minor issues have been found in the NAPS dataset:
 
 However, most noteably an inconsistent date mis-aligment was discovered
 for several sites/years (see [Date Misalignment](#date-misalignment)).
+This is a serious issue that needs to be addressed and will impact
+downstream analysis that rely on hourly data.
 
 ## Data Format Differences
 
@@ -205,7 +207,8 @@ db |>
   as.character()
 ```
 
-These files have been identified as having the old format:
+These files have been identified as having the old format - see
+[here](extdata/issues/old_format_files.csv) for the full list:
 
     #> NO2: 1974-2001, 2003 and 2004
     #> O3: 1974-2001, 2003 and 2004
@@ -217,56 +220,101 @@ Every entry in the raw NAPS data has latitude, longitude,
 province/territory, and city information. However, for many sites these
 values are inconsistent between files.
 
-For example, lat/lng values have differing precisions between files
-causing slight shifts in location.
+For example, lat/lng values have differ between files causing
+slight/major shifts in location - see
+[here](extdata/issues/multiple_loc_sites.csv) for the full list.
 
     #> # A tibble: 308 × 4
     #>    site_id lat       lng        files                                           
     #>      <int> <chr>     <chr>      <chr>                                           
-    #>  1   50116 45.47167  -73.57222  O3_2007, NO2_2014, NO2_2007, O3_2005, NO2_2013,…
-    #>  2   50116 45.472854 -73.57296  O3_1982, O3_1987, NO2_1994, NO2_2000, O3_1978, …
-    #>  3   60204 42.31578  -83.04367  O3_2006, NO2_2008, O3_2009, O3_2010, PM25_2007,…
-    #>  4   60204 42.315778 -83.043667 O3_1977, O3_1991, NO2_1993, NO2_1997, NO2_2000,…
-    #>  5   50308 46.82118  -71.22049  O3_2008, PM25_2014, O3_2006, NO2_2008, O3_2010,…
-    #>  6   50308 46.821177 -71.220495 O3_1998, O3_2000, NO2_2001, NO2_1999, NO2_2004,…
-    #>  7   50308 46.82118  -71.2205   O3_2015, PM25_2019, NO2_2021, O3_2022, O3_2002,…
-    #>  8  101401 49.36989  -121.49912 NO2_2007, NO2_2018, PM25_2022, O3_2007, O3_2017…
-    #>  9  101401 49.369887 -121.49912 NO2_1998, O3_1997, O3_2003, NO2_2000, O3_1999, …
-    #> 10   60430 43.709444 -79.5435   O3_2000, NO2_2004, NO2_2003, PM25_2003, O3_2003…
+    #>  1   10102 47.56038  -52.7115   NO2_1990, NO2_1991, NO2_1992, NO2_1993, NO2_199…
+    #>  2   10102 47.56038  -52.71147  NO2_2002, NO2_2005, NO2_2006, NO2_2008, NO2_200…
+    #>  3   10301 48.949479 -57.945387 NO2_2001, NO2_2003, NO2_2004, O3_2001, O3_2003,…
+    #>  4   10301 48.94948  -57.94539  NO2_2002, NO2_2005, NO2_2006, NO2_2007, NO2_200…
+    #>  5   10701 51.02199  -57.09557  O3_2005, O3_2006, O3_2007, O3_2008, O3_2009     
+    #>  6   10701 51.021995 -57.095567 O3_2004                                         
+    #>  7   30118 44.64642  -63.57338  NO2_2002, O3_2002, O3_2014, O3_2015, O3_2016    
+    #>  8   30118 44.646425 -63.573383 NO2_1990, NO2_1991, NO2_1992, NO2_1993, NO2_199…
+    #>  9   30118 44.64643  -63.57338  NO2_2005, NO2_2006, NO2_2007, NO2_2008, NO2_201…
+    #> 10   30120 44.719799 -63.480754 PM25_2001, PM25_2002, PM25_2003, PM25_2004      
     #> # ℹ 298 more rows
 
-In addition, city names are inconsistently spelled between files
+Sometimes this coordinate shift is due to a change in precision (number
+of decimals) kept for the latitude/longitude. 5 decimals is the most
+common (and the expected level of precision), but a range of decimals
+exist. Here is a sample, see
+[here](extdata/issues/wrong_precision_coord_sites.csv) for the full
+list.
+
+    #> # A tibble: 124 × 6
+    #>    site_id lat_precision lng_precision lat       lng        files               
+    #>      <int>         <int>         <int> <chr>     <chr>      <chr>               
+    #>  1   10301             6             6 48.949479 -57.945387 NO2_2001, NO2_2003,…
+    #>  2   10701             6             6 51.021995 -57.095567 O3_2004             
+    #>  3   11001             4             4 52.9518   -66.9156   NO2_2014, NO2_2015,…
+    #>  4   30118             6             6 44.646425 -63.573383 NO2_1990, NO2_1991,…
+    #>  5   30120             6             6 44.719799 -63.480754 PM25_2001, PM25_200…
+    #>  6   30501             6             6 44.433611 -65.205833 O3_1985, O3_1986, O…
+    #>  7   40103             6             6 45.957318 -66.646719 NO2_1999, NO2_2000,…
+    #>  8   40203             6             6 45.308762 -66.008384 NO2_1987, NO2_1988,…
+    #>  9   40207             6             6 45.252898 -66.080065 O3_1997, O3_1998, O…
+    #> 10   40302             6             6 46.101578 -64.789661 NO2_1998, NO2_1999,…
+    #> # ℹ 114 more rows
+
+and here is a sample of all sites with more than 1 level of precision
+for their lat/lng values, see
+[here](extdata/issues/multiple_precision_coord_sites.csv) for the full
+list.
+
+    #> # A tibble: 252 × 7
+    #>    site_id     n lat_precision lng_precision lat       lng        files         
+    #>      <int> <int>         <int>         <int> <chr>     <chr>      <chr>         
+    #>  1   10102     2             5             4 47.56038  -52.7115   NO2_1990, NO2…
+    #>  2   10102     2             5             5 47.56038  -52.71147  NO2_2002, NO2…
+    #>  3   10301     2             5             5 48.94948  -57.94539  NO2_2002, NO2…
+    #>  4   10301     2             6             6 48.949479 -57.945387 NO2_2001, NO2…
+    #>  5   10701     2             5             5 51.02199  -57.09557  O3_2005, O3_2…
+    #>  6   10701     2             6             6 51.021995 -57.095567 O3_2004       
+    #>  7   30118     2             5             5 44.64642  -63.57338  NO2_2002, O3_…
+    #>  8   30118     2             5             5 44.64643  -63.57338  NO2_2005, NO2…
+    #>  9   30118     2             6             6 44.646425 -63.573383 NO2_1990, NO2…
+    #> 10   30120     2             4             5 44.7198   -63.48076  NO2_2006, NO2…
+    #> # ℹ 242 more rows
+
+In addition, city names are inconsistently spelled between files - see
+[here](extdata/issues/wrong_precision_coord_sites.csv) for the full list
 
     #> # A tibble: 27 × 2
     #>    prov_terr cities                             
     #>    <chr>     <chr>                              
-    #>  1 AB        Bitumount | Bitumont               
+    #>  1 AB        Bitumont | Bitumount               
     #>  2 AB        Fort Mackay | Fort Mckay           
-    #>  3 BC        Metro Van - Abbotsford | Abbotsford
-    #>  4 BC        Metro Van - Burnaby | Burnaby      
+    #>  3 BC        Abbotsford | Metro Van - Abbotsford
+    #>  4 BC        Burnaby | Metro Van - Burnaby      
     #>  5 BC        Chilliwack | Metro Van-Chilliwack  
     #>  6 BC        Coquitlam | Metro Van - Coquitlam  
-    #>  7 BC        Metro Van - Delta | Delta          
-    #>  8 BC        Fort St. John | Fort St John       
-    #>  9 BC        Metro Van-Hope | Hope              
+    #>  7 BC        Delta | Metro Van - Delta          
+    #>  8 BC        Fort St John | Fort St. John       
+    #>  9 BC        Hope | Metro Van-Hope              
     #> 10 BC        Langley | Metro Van-Langley        
     #> # ℹ 17 more rows
 
-and some sites have multiple city names across files.
+and some sites have multiple city names across files - see
+[here](extdata/issues/multiple_city_sites.csv) for the full list.
 
     #> # A tibble: 48 × 3
     #>    site_id n_cities cities                                                  
     #>      <int>    <int> <chr>                                                   
     #>  1   53501        3 Saint-François | St-Francois | St-François-Île-D'orléans
-    #>  2  100135        2 Coquitlam | Metro Van - Coquitlam                       
-    #>  3   52301        2 Saint-Faustin-Lac-Carré | Saint-Faustin-Lac-Carre       
-    #>  4  100121        2 Metro Van - North Vancouver | North Vancouver           
-    #>  5   10102        2 St. John's | St Johns                                   
-    #>  6   90801        2 Fort Mckay | Fort Mackay                                
-    #>  7   55001        2 Ferme Neuve | Mont Saint-Michel                         
-    #>  8  101004        2 Metro Van - Abbotsford | Abbotsford                     
-    #>  9   50801        2 Trois Rivières | Trois-Rivières                         
-    #> 10   51501        2 St-Zépherin-De-Courval | St. Zephirin-De-Courval        
+    #>  2   10102        2 St Johns | St. John's                                   
+    #>  3   10501        2 Grand Falls - Windsor | Grand Falls-Windsor             
+    #>  4   30120        2 Dartmouth | Halifax                                     
+    #>  5   40401        2 Fundy Nat. Park | Fundy National Park                   
+    #>  6   40601        2 Blissville - Sunbury County | Central Blissville        
+    #>  7   40701        2 Norton | Norton - Kings County                          
+    #>  8   40901        2 Saint Andrews | St. Andrews                             
+    #>  9   41201        2 Lower Newscastle | Miramichi                            
+    #> 10   50308        2 Quebec | Québec                                         
     #> # ℹ 38 more rows
 
 ## Invalid Metadata
@@ -274,7 +322,10 @@ and some sites have multiple city names across files.
 Throughout the files, the Yukon territory is marked with the old
 abbreviation “YK”, the official abbreviation is now “YT” and should be
 used. (see
-[here](https://www.noslangues-ourlanguages.gc.ca/en/writing-tips-plus/abbreviations-canadian-provinces-and-territories))
+[here](https://www.noslangues-ourlanguages.gc.ca/en/writing-tips-plus/abbreviations-canadian-provinces-and-territories)
+for the source of the official names). See
+[here](extdata/issues/non_official_provinces.csv) for the full list of
+issues.
 
     #> # A tibble: 1 × 2
     #>   original official
@@ -284,7 +335,8 @@ used. (see
 For some sites/files, the coordinates are outside of the
 province/territory they are marked to be in - for some it appears to be
 a typo or rounding issue, but for a few it is a complely invalid
-longitude.
+longitude. See [here](extdata/issues/out_of_province_coords.csv) for the
+full list of issues.
 
     #> # A tibble: 5 × 7
     #>   site_id lat       lng         prov_terr expected_prov_terr pollutants    years
@@ -299,29 +351,31 @@ longitude.
 
 Some values in the raw data are unrealistically high or low.
 
-Here is a sample of files/sites with negative concentrations:
+Here is a sample of files/sites with negative concentrations - see
+[here](extdata/issues/invalid_values.csv) for the full list:
 
     #> # A tibble: 131 × 2
     #>    file_name site_ids                                                           
     #>    <chr>     <chr>                                                              
-    #>  1 NO2_1974  050102, 060401, 060411, 050304, 090122, 070101, 030116, 060204, 05…
-    #>  2 NO2_1975  060403, 050102, 060505, 060602, 060401, 050112, 060411, 061201, 05…
-    #>  3 NO2_1976  060410, 060901, 060505, 060602, 061301, 050102, 060104, 070118, 05…
-    #>  4 NO2_1977  060410, 060901, 100109, 060414, 060505, 060602, 061301, 050102, 06…
-    #>  5 NO2_1978  060410, 060901, 100109, 060414, 060505, 060602, 061301, 050102, 05…
-    #>  6 NO2_1979  050102, 060403, 090130, 060410, 060901, 100109, 030115, 100302, 05…
-    #>  7 NO2_1980  060401, 030115, 100302, 050111, 060402, 061501, 070119, 090222, 10…
-    #>  8 NO2_1981  050104, 060413, 100106, 050110, 050113, 060105, 060412, 040202, 05…
-    #>  9 NO2_1982  050116, 060104, 070118, 100108, 060402, 061501, 070119, 090222, 10…
-    #> 10 NO2_1983  060403, 060417, 062601, 090130, 050102, 050103, 060418, 060414, 06…
+    #>  1 NO2_1974  030115, 030116, 050102, 050104, 050304, 060204, 060401, 060410, 06…
+    #>  2 NO2_1975  030115, 030116, 050102, 050104, 050110, 050111, 050112, 050304, 06…
+    #>  3 NO2_1976  030115, 030116, 050102, 050104, 050110, 050111, 050112, 050113, 05…
+    #>  4 NO2_1977  030115, 030116, 050102, 050104, 050109, 050110, 050111, 050112, 05…
+    #>  5 NO2_1978  030115, 030116, 050102, 050104, 050109, 050110, 050111, 050112, 05…
+    #>  6 NO2_1979  030115, 030116, 050102, 050104, 050109, 050110, 050111, 050112, 05…
+    #>  7 NO2_1980  030115, 030116, 040202, 050102, 050104, 050109, 050110, 050111, 05…
+    #>  8 NO2_1981  030115, 030116, 040202, 050102, 050104, 050109, 050110, 050111, 05…
+    #>  9 NO2_1982  030115, 030116, 040202, 050102, 050103, 050104, 050108, 050109, 05…
+    #> 10 NO2_1983  030115, 030116, 040202, 050102, 050103, 050104, 050108, 050109, 05…
     #> # ℹ 121 more rows
 
-Here is a sample of files/sites with concentrations above 2000:
+Here is a sample of files/sites with concentrations above 2000 - see
+[here](extdata/issues/invalid_values.csv) for the full list:
 
     #> # A tibble: 2 × 2
     #>   file_name site_ids                              
     #>   <chr>     <chr>                                 
-    #> 1 PM25_2016 090801, 094601, 090806, 090701, 090702
+    #> 1 PM25_2016 090701, 090702, 090801, 090806, 094601
     #> 2 PM25_2023 105504
 
 ## Date Misalignment
@@ -389,11 +443,13 @@ for (pollutant in pollutants) {
 ```
 
 Here is a sample of the sites with persistent date misalignment issues
-(PM2.5 only, but they exist for other pollutants - see
-[here](extdata/issues/)). “\_lag_1” indicates that those data are lagged
-by 1 hour (i.e. those data are incorrectly shifted 1 hour later). Here
-all of the sites go from 70-90% correlation to 93-100% after lagging the
-NAPS data by 1 hour.
+(PM2.5 only, but they exist for other pollutants. “\_lag_1” indicates
+that those data are lagged by 1 hour (i.e. those data are incorrectly
+shifted 1 hour later). Here all of the sites go from 70-90% correlation
+to 93-100% after lagging the NAPS data by 1 hour. See the following for
+the full lists for: [PM2.5](extdata/issues/pm25_site_alignment.csv),
+[O3](extdata/issues/o3_site_alignment.csv),
+[NO2](extdata/issues/no2_site_alignment.csv).
 
     #> # A tibble: 9 × 6
     #>   naps_id best_lag_a best_lag_b      best_cor nonlagged_cor mean_count
@@ -411,22 +467,25 @@ NAPS data by 1 hour.
 Here is a sample of the sites with date misalignment issues for specific
 years (PM2.5 only, but they exist for other pollutants). Here all of the
 sites go from 70-90% correlation to 93-100% after lagging the NAPS data
-by 1 hour.
+by 1 hour. See the following for the full lists for:
+[PM2.5](extdata/issues/pm25_annual_site_alignment.csv),
+[O3](extdata/issues/o3_annual_site_alignment.csv),
+[NO2](extdata/issues/no2_annual_site_alignment.csv).
 
-    #> # A tibble: 78 × 7
+    #> # A tibble: 73 × 7
     #>     year naps_id best_lag_a best_lag_b      best_cor nonlagged_cor mean_count
     #>    <int>   <int> <chr>      <chr>              <dbl>         <dbl>      <dbl>
-    #>  1  2000  101701 pm25_bcgov pm25_naps_lag_1        1         0.830      6848.
-    #>  2  2001  101701 pm25_bcgov pm25_naps_lag_1        1         0.854      8675.
-    #>  3  2001  105501 pm25_bcgov pm25_naps_lag_1        1         0.829      6945.
-    #>  4  2002  101701 pm25_bcgov pm25_naps_lag_1        1         0.832      8249.
-    #>  5  2002  105501 pm25_bcgov pm25_naps_lag_1        1         0.777      8718.
-    #>  6  2003  101701 pm25_bcgov pm25_naps_lag_1        1         0.841      7290 
-    #>  7  2003  105501 pm25_bcgov pm25_naps_lag_1        1         0.780      2401.
-    #>  8  2004  101701 pm25_bcgov pm25_naps_lag_1        1         0.842      8537 
-    #>  9  2005  101803 pm25_bcgov pm25_naps_lag_1        1         0.641      4623.
-    #> 10  2005  103203 pm25_bcgov pm25_naps_lag_1        1         0.824      8459.
-    #> # ℹ 68 more rows
+    #>  1  2001  105501 pm25_bcgov pm25_naps_lag_1    1             0.829      6945.
+    #>  2  2002  105501 pm25_bcgov pm25_naps_lag_1    1             0.777      8718.
+    #>  3  2003  105501 pm25_bcgov pm25_naps_lag_1    1             0.780      2401.
+    #>  4  2005  101803 pm25_bcgov pm25_naps_lag_1    1             0.641      4623.
+    #>  5  2005  103203 pm25_bcgov pm25_naps_lag_1    1             0.824      8459.
+    #>  6  2005  103204 pm25_bcgov pm25_naps_lag_1    1             0.756      8498.
+    #>  7  2005  103205 pm25_bcgov pm25_naps_lag_1    0.933         0.739      8008.
+    #>  8  2005  106502 pm25_bcgov pm25_naps_lag_1    1             0.713      7515.
+    #>  9  2006  101803 pm25_bcgov pm25_naps_lag_1    1             0.790      7501 
+    #> 10  2006  103203 pm25_bcgov pm25_naps_lag_1    1             0.780      6051.
+    #> # ℹ 63 more rows
 
 And this becomes quite clear when looking at the monthly correlation
 between the two datasets. Here is two samples of that, see
@@ -446,9 +505,9 @@ has a longitude issue that places it in Alberta for some years.
     #> # A tibble: 5 × 11
     #>   site_id prov_terr city      lat   lng tz_local          offset_local_standard
     #>     <int> <chr>     <chr>   <dbl> <dbl> <chr>                             <dbl>
-    #> 1  101701 BC        Quesnel  53.0 -112. America/Edmonton                     -7
+    #> 1  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
     #> 2  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
-    #> 3  101701 BC        Quesnel  53.0 -112. America/Edmonton                     -7
+    #> 3  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
     #> 4  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
     #> 5  101701 BC        Quesnel  53.0 -122. America/Vancouver                    -8
     #> # ℹ 4 more variables: offset_local_daylight <dbl>, years <chr>,

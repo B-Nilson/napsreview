@@ -68,7 +68,6 @@ test_that("site coordinates are consistent within files", {
   expect_true(nrow(multiple_loc_sites_within_files) == 0)
 })
 
-# TODO: add to readme
 test_that("all province/territory names are consistent with official names", {
   issues_file <- system.file("extdata/issues", package = "napsreview") |>
     file.path("non_official_provinces.csv")
@@ -120,7 +119,6 @@ test_that("all province/territory names are consistent with official names", {
   )
 })
 
-# TODO: add to readme
 test_that("all coordinates are within the province the site is marked in", {
   issues_file <- system.file("extdata/issues", package = "napsreview") |>
     file.path("out_of_province_coords.csv")
@@ -273,7 +271,6 @@ test_that("city names are consistently spelled", {
   expect_true(nrow(cities_with_multiple_spellings) == 0)
 })
 
-# TODO: add to readme
 test_that("lat/lng values have consistent precision", {
   raw_data <- load_raw_archive_data(collect = FALSE)
   on.exit(DBI::dbDisconnect(raw_data$src$con))
@@ -324,7 +321,6 @@ test_that("lat/lng values have consistent precision", {
   expect_true(nrow(multiple_precision) == 0)
 })
 
-# TODO: add to readme
 test_that("coordinates have 5 decimal places", {
   raw_data <- load_raw_archive_data(collect = FALSE)
   on.exit(DBI::dbDisconnect(raw_data$src$con))

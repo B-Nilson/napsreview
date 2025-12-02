@@ -140,8 +140,7 @@ Several relatively minor issues have been found in the NAPS dataset:
 * Site meta data values are inconsistent between files (see [Inconsistent Metadata](#inconsistent-metadata)).
 * Some coordinate and concentration values are unrealistic (see [Unrealistic Values](#unrealistic-values)).
 
-However, most noteably an inconsistent date mis-aligment was discovered for several sites/years (see [Date Misalignment](#date-misalignment)).
-
+However, most noteably an inconsistent date mis-aligment was discovered for several sites/years (see [Date Misalignment](#date-misalignment)). This is a serious issue that needs to be addressed and will impact downstream analysis that rely on hourly data.
 
 ## Data Format Differences
 
@@ -205,7 +204,7 @@ db |>
   as.character()
 ```
 
-These files have been identified as having the old format:
+These files have been identified as having the old format - see [here](extdata/issues/old_format_files.csv) for the full list:
 
 ```{r format_shift_summary, eval = TRUE, echo = FALSE}
 library(napsreview)
@@ -227,7 +226,7 @@ library(napsreview)
 Every entry in the raw NAPS data has latitude, longitude, province/territory, and city information.
 However, for many sites these values are inconsistent between files.
 
-For example, lat/lng values have differing precisions between files causing slight shifts in location.
+For example, lat/lng values have differ between files causing slight/major shifts in location - see [here](extdata/issues/multiple_loc_sites.csv) for the full list.
 
 ```{r inconsistent_coords, eval = TRUE, echo = FALSE}
 "extdata/issues/multiple_loc_sites.csv" |>
@@ -237,7 +236,27 @@ For example, lat/lng values have differing precisions between files causing slig
   dplyr::mutate(dplyr::across(c(lat, lng), as.character))
 ```
 
-In addition, city names are inconsistently spelled between files
+Sometimes this coordinate shift is due to a change in precision (number of decimals) kept for the latitude/longitude. 5 decimals is the most common (and the expected level of precision), but a range of decimals exist. Here is a sample, see [here](extdata/issues/wrong_precision_coord_sites.csv) for the full list.
+
+```{r wrong_precision, eval = TRUE, echo = FALSE}
+"extdata/issues/wrong_precision_coord_sites.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |>
+  dplyr::mutate(dplyr::across(c(lat, lng), as.character))
+```
+
+and here is a sample of all sites with more than 1 level of precision for their lat/lng values, see [here](extdata/issues/multiple_precision_coord_sites.csv) for the full list.
+
+```{r multiple_precision, eval = TRUE, echo = FALSE}
+"extdata/issues/multiple_precision_coord_sites.csv" |>
+  system.file(package = "napsreview") |>
+  read.csv() |>
+  tibble::as_tibble() |>
+  dplyr::mutate(dplyr::across(c(lat, lng), as.character))
+```
+
+In addition, city names are inconsistently spelled between files -  see [here](extdata/issues/wrong_precision_coord_sites.csv) for the full list
 
 ```{r inconsistent_city_spelling, eval = TRUE, echo = FALSE}
 "extdata/issues/multiple_city_spellings.csv" |>
@@ -246,7 +265,7 @@ In addition, city names are inconsistently spelled between files
   tibble::as_tibble()
 ```
 
-and some sites have multiple city names across files.
+and some sites have multiple city names across files - see [here](extdata/issues/multiple_city_sites.csv) for the full list.
 
 ```{r inconsistent_site_city, eval = TRUE, echo = FALSE}
 "extdata/issues/multiple_city_sites.csv" |>
@@ -259,7 +278,7 @@ and some sites have multiple city names across files.
 ## Invalid Metadata
 
 Throughout the files, the Yukon territory is marked with the old abbreviation "YK", the official abbreviation is now "YT" and should be used.
-(see [here](https://www.noslangues-ourlanguages.gc.ca/en/writing-tips-plus/abbreviations-canadian-provinces-and-territories))
+(see [here](https://www.noslangues-ourlanguages.gc.ca/en/writing-tips-plus/abbreviations-canadian-provinces-and-territories) for the source of the official names). See [here](extdata/issues/non_official_provinces.csv) for the full list of issues.
 
 ```{r unofficial_pt, eval = TRUE, echo = FALSE}
 "extdata/issues/non_official_provinces.csv" |>
@@ -269,7 +288,7 @@ Throughout the files, the Yukon territory is marked with the old abbreviation "Y
   dplyr::filter(original != official)
 ```
 
-For some sites/files, the coordinates are outside of the province/territory they are marked to be in - for some it appears to be a typo or rounding issue, but for a few it is a complely invalid longitude.
+For some sites/files, the coordinates are outside of the province/territory they are marked to be in - for some it appears to be a typo or rounding issue, but for a few it is a complely invalid longitude. See [here](extdata/issues/out_of_province_coords.csv) for the full list of issues.
 
 ```{r invalid_coords, eval = TRUE, echo = FALSE}
 "extdata/issues/out_of_province_coords.csv" |>
@@ -287,7 +306,7 @@ For some sites/files, the coordinates are outside of the province/territory they
 
 Some values in the raw data are unrealistically high or low.
 
-Here is a sample of files/sites with negative concentrations:
+Here is a sample of files/sites with negative concentrations - see [here](extdata/issues/invalid_values.csv) for the full list:
 ```{r negatives, eval = TRUE, echo = FALSE}
 "extdata/issues/invalid_values.csv" |>
   system.file(package = "napsreview") |>
@@ -297,7 +316,7 @@ Here is a sample of files/sites with negative concentrations:
   dplyr::select(file_name, site_ids)
 ```
 
-Here is a sample of files/sites with concentrations above 2000:
+Here is a sample of files/sites with concentrations above 2000 - see [here](extdata/issues/invalid_values.csv) for the full list:
 ```{r extremes, eval = TRUE, echo = FALSE}
 "extdata/issues/invalid_values.csv" |>
   system.file(package = "napsreview") |>
@@ -360,24 +379,22 @@ for (pollutant in pollutants) {
 
 ```
 
-Here is a sample of the sites with persistent date misalignment issues (PM2.5 only, but they exist for other pollutants - see [here](extdata/issues/)). "_lag_1" indicates that those data are lagged by 1 hour (i.e. those data are incorrectly shifted 1 hour later). Here all of the sites go from 70-90% correlation to 93-100% after lagging the NAPS data by 1 hour.
+Here is a sample of the sites with persistent date misalignment issues (PM2.5 only, but they exist for other pollutants. "_lag_1" indicates that those data are lagged by 1 hour (i.e. those data are incorrectly shifted 1 hour later). Here all of the sites go from 70-90% correlation to 93-100% after lagging the NAPS data by 1 hour. See the following for the full lists for: [PM2.5](extdata/issues/pm25_site_alignment.csv), [O3](extdata/issues/o3_site_alignment.csv), [NO2](extdata/issues/no2_site_alignment.csv).
 
 ```{r site_alignment, eval = TRUE, echo = FALSE}
 "extdata/issues/pm25_site_alignment.csv" |>
   system.file(package = "napsreview") |>
   read.csv() |>
-  tibble::as_tibble() |>
-  dplyr::select(-X) # TODO: don't write out row names
+  tibble::as_tibble()
 ```
 
-Here is a sample of the sites with date misalignment issues for specific years (PM2.5 only, but they exist for other pollutants). Here all of the sites go from 70-90% correlation to 93-100% after lagging the NAPS data by 1 hour.
+Here is a sample of the sites with date misalignment issues for specific years (PM2.5 only, but they exist for other pollutants). Here all of the sites go from 70-90% correlation to 93-100% after lagging the NAPS data by 1 hour. See the following for the full lists for: [PM2.5](extdata/issues/pm25_annual_site_alignment.csv), [O3](extdata/issues/o3_annual_site_alignment.csv), [NO2](extdata/issues/no2_annual_site_alignment.csv).
 
 ```{r annual_site_alignment, eval = TRUE, echo = FALSE}
 "extdata/issues/pm25_annual_site_alignment.csv" |>
   system.file(package = "napsreview") |>
   read.csv() |>
-  tibble::as_tibble() |>
-  dplyr::select(-X) # TODO: don't write out row names
+  tibble::as_tibble()
 ```
 
 And this becomes quite clear when looking at the monthly correlation between the two datasets. Here is two samples of that, see [monthly_cor_plots](/inst/extdata/issues/monthly_cor_plots) for the full set.
