@@ -220,8 +220,8 @@ Every entry in the raw NAPS data has latitude, longitude,
 province/territory, and city information. However, for many sites these
 values are inconsistent between files.
 
-For example, lat/lng values have differ between files causing
-slight/major shifts in location - see
+For example, lat/lng values differ between files causing slight/major
+shifts in location - see
 [here](inst/extdata/issues/multiple_loc_sites.csv) for the full list.
 
     #> # A tibble: 308 × 4
@@ -321,7 +321,7 @@ and some sites have multiple city names across files - see
 ## Invalid Metadata
 
 Throughout the files, the Yukon territory is marked with the old
-abbreviation “YK”, the official abbreviation is now “YT” and should be
+abbreviation “YU”, the official abbreviation is now “YT” and should be
 used. (see
 [here](https://www.noslangues-ourlanguages.gc.ca/en/writing-tips-plus/abbreviations-canadian-provinces-and-territories)
 for the source of the official names). See
@@ -513,3 +513,15 @@ but could be due to how air quality is managed in that region seperatley
 from the rest of the province.
 
 ![](/inst/extdata/issues/misalignment_map.png)
+
+Unfortunatley, given that no other province/territory provides an easy
+to collect data source for their historic air quality data (that we are
+aware of), we are not able to evaluate this issue across Canada. In
+addition, due to BC not providing NAPS ID’s for all stations, some BC
+sites which have alignment issues may not be represented in this
+analysis. If the trend we observed for BC persists, potential issues may
+exist for NL and NU due to the presence of multiple timezones in those
+provinces/territories. In addition, other provinces/territories with
+seperate internal agencies responsible for monitoring air quality (such
+as the air sheds in AB) may also have alignment issues, similiar to what
+was noted for Metro Vancouver.
