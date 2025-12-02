@@ -35,9 +35,9 @@ archive_raw_naps_data <- function(
       .show_progress = FALSE
     ) |>
     # some pollutants don't have method codes, so need to do some cleanup
-    dplyr::relocate(dplyr::any_of("Method Code//Code Méthode"), .after = 2) |>
+    dplyr::relocate(dplyr::any_of("Method Code//Code M\u00E9thode"), .after = 2) |>
     dplyr::mutate(
-      dplyr::across(dplyr::any_of("Method Code//Code Méthode"), \(x) {
+      dplyr::across(dplyr::any_of("Method Code//Code M\u00E9thode"), \(x) {
         handyr::swap(x, what = NA, with = -999) |> as.integer()
       })
     )
@@ -63,8 +63,8 @@ archive_raw_naps_data <- function(
     handyr::write_to_database(
       table_name = raw_data_tbl |> paste0("_v1"),
       new_data = raw_data_v1 |>
-        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
-        dplyr::relocate(row_number, .after = "name"),
+        dplyr::mutate(row_number = dplyr::row_number(), .by = "name") |>
+        dplyr::relocate("row_number", .after = "name"),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
       update_duplicates = FALSE,
@@ -74,8 +74,8 @@ archive_raw_naps_data <- function(
     handyr::write_to_database(
       table_name = raw_data_tbl |> paste0("_v2"),
       new_data = raw_data_v2 |>
-        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
-        dplyr::relocate(.data$row_number, .after = name),
+        dplyr::mutate(row_number = dplyr::row_number(), .by = "name") |>
+        dplyr::relocate("row_number", .after = "name"),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
       update_duplicates = FALSE,
@@ -87,8 +87,8 @@ archive_raw_naps_data <- function(
     handyr::write_to_database(
       table_name = raw_headers_tbl |> paste0("_v1"),
       new_data = raw_headers_v1 |>
-        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
-        dplyr::relocate(.data$row_number, .after = name),
+        dplyr::mutate(row_number = dplyr::row_number(), .by = "name") |>
+        dplyr::relocate("row_number", .after = "name"),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
       update_duplicates = FALSE,
@@ -98,8 +98,8 @@ archive_raw_naps_data <- function(
     handyr::write_to_database(
       table_name = raw_headers_tbl |> paste0("_v2"),
       new_data = raw_headers_v2 |>
-        dplyr::mutate(row_number = dplyr::row_number(), .by = name) |>
-        dplyr::relocate(row_number, .after = name),
+        dplyr::mutate(row_number = dplyr::row_number(), .by = "name") |>
+        dplyr::relocate("row_number", .after = "name"),
       primary_keys = c("name", "row_number"),
       insert_new = TRUE,
       update_duplicates = FALSE,
@@ -115,7 +115,7 @@ archive_raw_naps_data <- function(
       name,
       row_number,
       Pollutant AS "Pollutant//Polluant",
-      Method    AS "Method Code//Code Méthode",
+      Method    AS "Method Code//Code M\u00E9thode",
       NAPSID    AS "NAPS ID//Identifiant SNPA",
       City      AS "City//Ville",
       "P/T"     AS "Province/Territory//Province/Territoire",

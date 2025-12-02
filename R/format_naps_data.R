@@ -18,7 +18,7 @@ format_naps_data <- function(naps_data_list) {
     date = "Date//Date",
     "hour_local", # from H## headers
     pollutant = "Pollutant//Polluant",
-    method_code = "Method Code//Code Méthode",
+    method_code = "Method Code//Code M\u00E9thode",
     "value" # from H## columns
   )
 
@@ -98,7 +98,7 @@ format_naps_data <- function(naps_data_list) {
         format("%F") |>
         paste(.data$hour_local - 1) |> # hours are 1 - 24, convert to 0-23
         lubridate::ymd_h(tz = "UTC") - # convert to date, pretend already UTC (manually adjust from LST below)
-        lubridate::minutes(round(offset_local_standard, digits = 1) * 60) + # LST -> UTC
+        lubridate::minutes(round(.data$offset_local_standard, digits = 1) * 60) + # LST -> UTC
         lubridate::hours(1) # fix 1-24 -> 0-23 conversion earlier
     ) |>
     dplyr::select(-dplyr::any_of("hour_local")) |>
@@ -158,15 +158,15 @@ fix_city_names <- function(cities) {
     cities == "Grand Falls - Windsor" ~ "Grand Falls-Windsor",
     cities == "Fundy Nat. Park" ~ "Fundy National Park",
     cities == "Saint Andrews" ~ "St. Andrews",
-    cities == "Quebec" ~ "Québec",
-    cities == "Trois Rivières" ~ "Trois-Rivières",
+    cities == "Quebec" ~ "Qu\u00E9bec",
+    cities == "Trois Rivi\u00E8res" ~ "Trois-Rivi\u00E8res",
     cities %in%
       c(
         "St. Zephirin-De-Courval",
-        "St-Zépherin-De-Courval"
-      ) ~ "Saint-Zéphirin-de-Courval",
+        "St-Z\u00E9pherin-De-Courval"
+      ) ~ "Saint-Z\u00E9phirin-de-Courval",
     cities %in%
-      c("Saint-Faustin-Lac-Carre", "Saint-Faustin-Lac-Carré") ~ "Mont-Blanc", # city was renamed in 2022
+      c("Saint-Faustin-Lac-Carre", "Saint-Faustin-Lac-Carr\u00E9") ~ "Mont-Blanc", # city was renamed in 2022
     cities %in%
       c(
         "Ste-Cath-De-J-Cartier",
@@ -175,9 +175,9 @@ fix_city_names <- function(cities) {
     cities %in%
       c(
         "St-Francois",
-        "St-François-Île-D'orléans",
+        "St-Fran\u00E7ois-\u00CEle-D'orl\u00E9ans",
         "Ste-Francoise"
-      ) ~ "Saint-François",
+      ) ~ "Saint-Fran\u00E7ois",
     cities == "Sault Ste Marie" ~ "Sault Ste. Marie",
     cities == "Exp Lakes Area" ~ "Exp. Lakes Area",
     cities == "Bitumont" ~ "Bitumount",

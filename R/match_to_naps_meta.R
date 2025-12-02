@@ -36,8 +36,8 @@ match_to_naps_meta <- function(meta, distance_threshold_km = 0.25) {
         )),
       by = c("lat", "lng")
     ) |>
-    dplyr::group_by(site_id) |>
-    dplyr::summarise(naps_id = paste(naps_id, collapse = ","))
+    dplyr::group_by(.data$site_id) |>
+    dplyr::summarise(naps_id = paste(.data$naps_id, collapse = ","))
 
   # Match by proximity
   distance_matrix <- meta |>
@@ -109,7 +109,7 @@ get_naps_meta <- function(language = "en") {
     min()
   data_start <- header_row + 3 - which(names(header_patterns) == language)
   data_end <- lines |>
-    stringr::str_which(pattern = "Definitions_Définitions") |>
+    stringr::str_which(pattern = "Definitions_D\u00E9finitions") |>
     max() -
     2
 

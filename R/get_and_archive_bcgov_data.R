@@ -1,5 +1,6 @@
 #' Get and archive bcgov data
 #'
+#' @param db A duckdb connection.
 #' @param date_range A vector of two date/datetime objects specifying the range of dates to get data for.
 #' @export
 get_and_archive_bcgov_data <- function(db, date_range) {
@@ -43,7 +44,7 @@ get_and_archive_bcgov_data <- function(db, date_range) {
       stations = bcgov_meta$site_id |> unique(),
       variables = c("pm25", "o3", "no2")
     ) |>
-    dplyr::select(-quality_assured, -date_local)
+    dplyr::select(-c("quality_assured", "date_local"))
 
   # Archive observations
   db |>

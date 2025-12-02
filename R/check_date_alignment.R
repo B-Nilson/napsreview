@@ -154,7 +154,7 @@ check_date_alignment <- function(
         by = c("naps_id", "best_lag_b") |>
           stats::setNames(c("naps_id", name_cols[2]))
       ) |>
-      tidyr::nest(.by = naps_id) |>
+      tidyr::nest(.by = "naps_id") |>
       dplyr::mutate(
         plot = .data$data |>
           handyr::for_each(
@@ -165,7 +165,7 @@ check_date_alignment <- function(
                 make_cor_plot(
                   value_cols = value_cols,
                   name_cols = name_cols,
-                  site_id = naps_id[i]
+                  site_id = .data$naps_id[i]
                 )
               gg |>
                 handyr::save_figure(
@@ -174,7 +174,7 @@ check_date_alignment <- function(
                       "monthly_cor_plots",
                       sprintf(
                         "%s_%s_%s.png",
-                        naps_id[i],
+                        .data$naps_id[i],
                         value_cols[1],
                         value_cols[2]
                       )

@@ -50,26 +50,31 @@ get_lagged_correlation <- function(
         lagged_n_matrix[-1, -1] <- NA # drop where both are lagged
         return(lagged_n_matrix)
       }),
-      best_lag_a = sapply(cor_matrix, \(x) {
-        row.names(x)[which(x == handyr::max(x, na.rm = TRUE), arr.ind = TRUE)[[
-          1
-        ]]] |>
-          handyr::on_error(.return = NA_character_)
-      }),
-      best_lag_b = sapply(cor_matrix, \(x) {
-        colnames(x)[which(x == handyr::max(x, na.rm = TRUE), arr.ind = TRUE)[[
-          2
-        ]]] |>
-          handyr::on_error(.return = NA_character_)
-      }),
-      best_cor = sapply(cor_matrix, \(x) handyr::max(x, na.rm = TRUE)),
-      nonlagged_cor = sapply(cor_matrix, \(x) x[1, 1]),
-      mean_count = sapply(count_matrix, \(x) mean(x, na.rm = TRUE))
+      best_lag_a = .data$cor_matrix |>
+        sapply(\(x) {
+          row.names(x)[which(
+            x == handyr::max(x, na.rm = TRUE),
+            arr.ind = TRUE
+          )[[
+            1
+          ]]] |>
+            handyr::on_error(.return = NA_character_)
+        }),
+      best_lag_b = .data$cor_matrix |>
+        sapply(\(x) {
+          colnames(x)[which(x == handyr::max(x, na.rm = TRUE), arr.ind = TRUE)[[
+            2
+          ]]] |>
+            handyr::on_error(.return = NA_character_)
+        }),
+      best_cor = .data$cor_matrix |> sapply(\(x) handyr::max(x, na.rm = TRUE)),
+      nonlagged_cor = .data$cor_matrix |> sapply(\(x) x[1, 1]),
+      mean_count = .data$count_matrix |> sapply(\(x) mean(x, na.rm = TRUE))
     ) |>
     dplyr::select(-"data")
 
   if (length(group_names) == 0) {
-    output <- dplyr::pull(output, cor_matrix)[[1]]
+    output <- dplyr::pull(output, "cor_matrix")[[1]]
   }
   return(output)
 }

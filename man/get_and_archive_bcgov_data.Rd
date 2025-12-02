@@ -7,6 +7,8 @@
 get_and_archive_bcgov_data(db, date_range)
 }
 \arguments{
+\item{db}{A duckdb connection.}
+
 \item{date_range}{A vector of two date/datetime objects specifying the range of dates to get data for.}
 }
 \description{

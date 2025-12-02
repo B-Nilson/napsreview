@@ -1,8 +1,8 @@
 # Get timezone and lst/ldt offset for each site
 get_site_tz_details <- function(site_data, add = FALSE) {
   site_tz_details <- site_data |>
-    dplyr::distinct(site_id, lat, lng) |> # unique site locations
-    dplyr::mutate(tz_local = handyr::get_timezone(lng, lat)) |> # get timezone i.e "America/Vancouver"
+    dplyr::distinct(.data$site_id, .data$lat, .data$lng) |> # unique site locations
+    dplyr::mutate(tz_local = handyr::get_timezone(.data$lng, .data$lat)) |> # get timezone i.e "America/Vancouver"
     dplyr::distinct(.data$site_id, .data$tz_local) |> # unique site timezones
     # get standard and daylight time offsets for each timezone
     dplyr::mutate(

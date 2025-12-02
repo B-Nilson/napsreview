@@ -34,9 +34,9 @@ make_cor_plot <- function(site_data, value_cols, name_cols, site_id) {
     ggplot2::geom_text(
       data = plot_data,
       ggplot2::aes(
-        x = factor(lubridate::month(date), labels = month.abb),
-        y = factor(lubridate::year(date)),
-        label = label
+        x = factor(lubridate::month(.data$date), labels = month.abb),
+        y = factor(lubridate::year(.data$date)),
+        label = .data$label
       )
     ) +
     ggplot2::labs(
