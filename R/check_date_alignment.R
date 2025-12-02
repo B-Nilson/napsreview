@@ -44,7 +44,7 @@ check_date_alignment <- function(
         " and ",
         colnames(overall_cor)[best_index[2]]
       )
-      overall_cor |> utils::write.csv(file = issue_file)
+      overall_cor |> utils::write.csv(file = issue_file, row.names = FALSE)
     } else {
       if (file.exists(issue_file)) file.remove(issue_file)
     }
@@ -74,7 +74,7 @@ check_date_alignment <- function(
           sprintf(x$naps_id, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_sites |> utils::write.csv(file = issue_file)
+    bad_sites |> utils::write.csv(file = issue_file, row.names = FALSE)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }
@@ -101,7 +101,7 @@ check_date_alignment <- function(
           sprintf(x$year, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_years |> utils::write.csv(file = issue_file)
+    bad_years |> utils::write.csv(file = issue_file, row.names = FALSE)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }
@@ -133,7 +133,7 @@ check_date_alignment <- function(
           sprintf(x$naps_id, x$years, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_site_years |> utils::write.csv(file = issue_file)
+    bad_site_years |> utils::write.csv(file = issue_file, row.names = FALSE)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }

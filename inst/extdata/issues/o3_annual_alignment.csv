@@ -1,2 +1,2 @@
-"","year","best_lag_a","best_lag_b","best_cor","nonlagged_cor","mean_count"
-"1",2009,"o3_bcgov","o3_naps_lag_1",0.927733794138184,0.907221957013932,289741
+"year","best_lag_a","best_lag_b","best_cor","nonlagged_cor","mean_count"
+2009,"o3_bcgov","o3_naps_lag_1",0.927733794138184,0.907221957013932,289741

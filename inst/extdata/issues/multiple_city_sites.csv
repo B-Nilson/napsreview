@@ -4,46 +4,46 @@ site_id,n_cities,cities
 030120,2,Halifax | Dartmouth
 040401,2,Fundy Nat. Park | Fundy National Park
 040601,2,Blissville - Sunbury County | Central Blissville
-040701,2,Norton | Norton - Kings County
-040901,2,Saint Andrews | St. Andrews
-041201,2,Miramichi | Lower Newscastle
-050308,2,Quebec | Québec
-050309,2,Quebec | Québec
-050310,2,Quebec | Québec
-050801,2,Trois Rivières | Trois-Rivières
-051501,2,St. Zephirin-De-Courval | St-Zépherin-De-Courval
-052301,2,Saint-Faustin-Lac-Carre | Saint-Faustin-Lac-Carré
+040701,2,Norton - Kings County | Norton
+040901,2,St. Andrews | Saint Andrews
+041201,2,Lower Newscastle | Miramichi
+050308,2,Québec | Quebec
+050309,2,Québec | Quebec
+050310,2,Québec | Quebec
+050801,2,Trois-Rivières | Trois Rivières
+051501,2,St-Zépherin-De-Courval | St. Zephirin-De-Courval
+052301,2,Saint-Faustin-Lac-Carré | Saint-Faustin-Lac-Carre
 053401,2,Ste-Cath-De-J-Cartier | Ste-Cath.-De-J-Cartier
-053501,3,St-Francois | Saint-François | St-François-Île-D'orléans
+053501,3,St-François-Île-D'orléans | Saint-François | St-Francois
 054901,2,Ditton | La Patrie
 055001,2,Ferme Neuve | Mont Saint-Michel
 060707,2,Sault Ste Marie | Sault Ste. Marie
-060709,2,Sault Ste Marie | Sault Ste. Marie
-064001,2,Exp. Lakes Area | Exp Lakes Area
+060709,2,Sault Ste. Marie | Sault Ste Marie
+064001,2,Exp Lakes Area | Exp. Lakes Area
 090801,2,Fort Mckay | Fort Mackay
 090805,2,Fort Mckay | Fort Mackay
-090806,2,Fort Mackay | Fort Mckay
+090806,2,Fort Mckay | Fort Mackay
 092101,2,Bitumount | Bitumont
-100110,2,Burnaby | Metro Van - Burnaby
+100110,2,Metro Van - Burnaby | Burnaby
 100111,2,Metro Van - Port Moody | Port Moody
 100112,2,Vancouver | Metro Van - Vancouver
 100118,2,Vancouver | Metro Van - Vancouver
 100119,2,Burnaby | Metro Van - Burnaby
-100121,2,Metro Van - North Vancouver | North Vancouver
+100121,2,North Vancouver | Metro Van - North Vancouver
 100125,2,Metro Van - Delta | Delta
-100126,2,Burnaby | Metro Van - Burnaby
+100126,2,Metro Van - Burnaby | Burnaby
 100127,2,Surrey | Metro Van - Surrey
 100128,2,Metro Van - Richmond | Richmond
 100131,2,Vancouver | Metro Van - Vancouver
 100132,2,Metro Van - North Vancouver | North Vancouver
 100134,2,Metro Van - Richmond | Richmond
 100135,2,Coquitlam | Metro Van - Coquitlam
-100138,2,Vancouver | Metro Van - West Vancouver
-101003,2,Metro Van - Abbotsford | Abbotsford
+100138,2,Metro Van - West Vancouver | Vancouver
+101003,2,Abbotsford | Metro Van - Abbotsford
 101004,2,Metro Van - Abbotsford | Abbotsford
-101101,2,Chilliwack | Metro Van-Chilliwack
-101202,2,Metro Van-Pitt Meadows | Pitt Meadows
+101101,2,Metro Van-Chilliwack | Chilliwack
+101202,2,Pitt Meadows | Metro Van-Pitt Meadows
 101301,2,Metro Van-Langley | Langley
 101401,2,Metro Van-Hope | Hope
 101501,2,Maple Ridge | Metro Van - Maple Ridge
-102001,2,Saturna Island | Saturna
+102001,2,Saturna | Saturna Island
