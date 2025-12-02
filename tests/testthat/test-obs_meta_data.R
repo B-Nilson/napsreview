@@ -23,6 +23,7 @@ test_that("site coordinates are consistent across files", {
       multiple_loc_sites$site_id |> unique() |> sort() |> paste(collapse = ", ")
     )
     multiple_loc_sites |>
+      dplyr::arrange(site_id) |>
       data.table::fwrite(file = issues_file)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
@@ -57,6 +58,7 @@ test_that("site coordinates are consistent within files", {
         paste(collapse = ", ")
     )
     multiple_loc_sites_within_files |>
+      dplyr::arrange(dplyr::desc(n), name, site_id) |>
       data.table::fwrite(file = issues_file)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
@@ -104,7 +106,7 @@ test_that("all province/territory names are consistent with official names", {
         paste(collapse = ", ")
     )
     data.frame(
-      original = sort(unique_prov_terrs),
+      original = sort(unique_prov_terrs), # TODO: wont always be the same order if major error
       official = sort(official_prov_terrs)
     ) |>
       data.table::fwrite(file = issues_file)
@@ -180,7 +182,9 @@ test_that("all coordinates are within the province the site is marked in", {
         sort() |>
         paste(collapse = ", ")
     )
-    bad_files |> data.table::fwrite(file = issues_file)
+    bad_files |> 
+      dplyr::arrange(site_id) |>
+      data.table::fwrite(file = issues_file)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
   }
@@ -215,6 +219,7 @@ test_that("city names are consistent for each site", {
         paste(collapse = ", ")
     )
     sites_with_multiple_cities |>
+      dplyr::arrange(site_id) |>
       data.table::fwrite(file = issues_file)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
@@ -259,6 +264,7 @@ test_that("city names are consistently spelled", {
         paste(collapse = ", ")
     )
     cities_with_multiple_spellings |>
+      dplyr::arrange(cities) |>
       utils::write.csv(file = issues_file, row.names = FALSE)
   } else if (file.exists(issues_file)) {
     file.remove(issues_file)
@@ -266,3 +272,5 @@ test_that("city names are consistently spelled", {
 
   expect_true(nrow(cities_with_multiple_spellings) == 0)
 })
+
+# TODO: add test for low precision lat/lng values (0-2 decimal places)
