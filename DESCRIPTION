@@ -1,9 +1,9 @@
 Package: napsreview
-Title: What the Package Does (One Line, Title Case)
+Title: A Comprehensive Review of the NAPS Archive
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("Brayden", "Nilson", , "brayden.nilson@ec.gc.ca", role = c("aut", "cre"))
+Description: An R package with the goal of assessing the validity of the National Air Pollution Surveillance (NAPS) Program archive of Canadian quality-assured continuous air quality observations
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
