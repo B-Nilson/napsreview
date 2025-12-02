@@ -273,4 +273,101 @@ test_that("city names are consistently spelled", {
   expect_true(nrow(cities_with_multiple_spellings) == 0)
 })
 
-# TODO: add test for low precision lat/lng values (0-2 decimal places)
+# TODO: add to readme
+test_that("lat/lng values have consistent precision", {
+  raw_data <- load_raw_archive_data(collect = FALSE)
+  on.exit(DBI::dbDisconnect(raw_data$src$con))
+
+  unique_coords <- raw_data |>
+    dplyr::distinct(lat, lng) |>
+    dplyr::collect()
+  precision_summary <- unique_coords |>
+    dplyr::mutate(
+      lat_precision = get_precision(lat),
+      lng_precision = get_precision(lng)
+    ) |>
+    dplyr::left_join(
+      raw_data |>
+        dplyr::distinct(site_id, lat, lng, file_name = name) |>
+        dplyr::group_by(site_id, lat, lng) |>
+        dplyr::summarise(
+          files = file_name |> stringr::str_flatten(collapse = ", "),
+          .groups = "drop"
+        ),
+      by = c("lat", "lng"),
+      copy = TRUE
+    ) |>
+    dplyr::arrange(site_id, lat_precision, lng_precision) |>
+    dplyr::relocate(c("site_id", "lat_precision", "lng_precision"), .before = 1)
+
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("multiple_precision_coord_sites.csv")
+  multiple_precision <- precision_summary |>
+    dplyr::distinct(site_id, lat_precision, lng_precision) |>
+    dplyr::count(site_id) |>
+    dplyr::filter(n > 1) |>
+    dplyr::left_join(precision_summary, by = "site_id")
+  # Warn if there are any, and save to file (or old remove file if no issues)
+  if (nrow(multiple_precision) > 0) {
+    warning(
+      "The following sites have more than 1 level of precision for its' lat/lng values: ",
+      multiple_precision$site_id |>
+        sort() |>
+        paste(collapse = ", ")
+    )
+    multiple_precision |>
+      dplyr::arrange(site_id, lat_precision, lng_precision) |>
+      utils::write.csv(file = issues_file, row.names = FALSE)
+  } else if (file.exists(issues_file)) {
+    file.remove(issues_file)
+  }
+  expect_true(nrow(multiple_precision) == 0)
+})
+
+# TODO: add to readme
+test_that("coordinates have 5 decimal places", {
+  raw_data <- load_raw_archive_data(collect = FALSE)
+  on.exit(DBI::dbDisconnect(raw_data$src$con))
+
+  unique_coords <- raw_data |>
+    dplyr::distinct(lat, lng) |>
+    dplyr::collect()
+  precision_summary <- unique_coords |>
+    dplyr::mutate(
+      lat_precision = get_precision(lat),
+      lng_precision = get_precision(lng)
+    ) |>
+    dplyr::left_join(
+      raw_data |>
+        dplyr::distinct(site_id, lat, lng, file_name = name) |>
+        dplyr::group_by(site_id, lat, lng) |>
+        dplyr::summarise(
+          files = file_name |> stringr::str_flatten(collapse = ", "),
+          .groups = "drop"
+        ),
+      by = c("lat", "lng"),
+      copy = TRUE
+    ) |>
+    dplyr::arrange(site_id, lat_precision, lng_precision) |>
+    dplyr::relocate(c("site_id", "lat_precision", "lng_precision"), .before = 1)
+
+  issues_file <- system.file("extdata/issues", package = "napsreview") |>
+    file.path("wrong_precision_coord_sites.csv")
+  wrong_precision <- precision_summary |>
+    dplyr::filter(lat_precision != 5, lng_precision != 5) # 5 is median precision
+  # Warn if there are any, and save to file (or old remove file if no issues)
+  if (nrow(wrong_precision) > 0) {
+    warning(
+      "The following sites have less than or more than 5 decimal place lat/lng values: ",
+      wrong_precision$site_id |>
+        sort() |>
+        paste(collapse = ", ")
+    )
+    wrong_precision |>
+      dplyr::arrange(site_id) |>
+      utils::write.csv(file = issues_file, row.names = FALSE)
+  } else if (file.exists(issues_file)) {
+    file.remove(issues_file)
+  }
+  expect_true(nrow(wrong_precision) == 0)
+})

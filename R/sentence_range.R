@@ -70,3 +70,13 @@ sentence_range <- function(x, reverse = FALSE) {
     paste(collapse = ", ") |>
     paste("and", x[length(x)])
 }
+
+# TODO: move to handyr
+get_precision <- function(x) {
+  stopifnot(is.numeric(x))
+  s <- as.character(x, scientific = FALSE)
+  has_decimal <- grepl(pattern = "\\.", x = s)
+  s[!has_decimal] <- paste0(s[!has_decimal], ".")
+  post_decimal <- sub(pattern = ".*\\.", replacement = "", x = s)
+  nchar(post_decimal)
+}
