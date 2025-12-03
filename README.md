@@ -46,19 +46,24 @@ library(napsreview)
 desired_years <- 1974:2023
 desired_pollutants <- c("PM25", "O3", "NO2")
 
-# Define local paths (default is the install dir of napsreview)
-#  but you can change that if needed
-raw_data_dir <- "extdata/naps_raw" |>
-  system.file(package = "napsreview")
-db_path <- "extdata" |>
-  system.file(package = "napsreview") |>
-  file.path("naps.duckdb")
+# Define local paths (change as desired)
+raw_data_dir <- "./naps_raw"
+db_path <- "./naps.duckdb"
+
+# Create directories if needed
+if (!dir.exists(raw_data_dir)) {
+  dir.create(raw_data_dir, recursive = TRUE)
+}
+if (!dir.exists(dirname(db_path))) {
+  dir.create(dirname(db_path), recursive = TRUE)
+}
 
 # Create (if needed) and connect to local database
 db <- connect_to_database(db_path)
 on.exit(DBI::dbDisconnect(db))
 
 # Collect data for desired years/pollutants
+# *takes ~10 minutes to run on my machine*
 naps_data <- desired_years |>
   get_naps_data(
     pollutants = desired_pollutants,
@@ -77,6 +82,7 @@ if (!DBI::dbExistsTable(db, "raw_data")) {
 }
 
 # Format data and write to database if needed
+# *takes ~30 minutes to run on my machine* # TODO: confirm
 if (!DBI::dbExistsTable(db, "fmt_data")) {
   db |>
     archive_fmt_naps_data(
@@ -87,6 +93,7 @@ if (!DBI::dbExistsTable(db, "fmt_data")) {
 }
 
 # Get and archive bcgov data if needed
+# *takes ~?? minutes to run on my machine* # TODO: assess
 if (!DBI::dbExistsTable(db, "bcgov_data")) {
   date_range <- db |>
     dplyr::tbl("raw_data") |>
@@ -108,8 +115,7 @@ And you can check that worked and view the data using the following:
 library(napsreview)
 
 # Connect to database (change path here if you did earlier as well)
-db_path <- system.file("extdata", package = "napsreview") |>
-  file.path("naps.duckdb")
+db_path <- "./naps.duckdb"
 db <- connect_to_database(db_path)
 on.exit(DBI::dbDisconnect(db))
 
@@ -160,14 +166,12 @@ Noteably:
 library(napsreview)
 
 # Connect to database (change path here if you did earlier as well)
-db_path <- system.file("extdata", package = "napsreview") |>
-  file.path("naps.duckdb")
+db_path <- "./naps.duckdb"
 db <- connect_to_database(db_path)
 on.exit(DBI::dbDisconnect(db))
 
 # View encoding differences between versions (change path here if you did earlier as well)
-raw_data_dir <- "extdata/naps_raw" |>
-  system.file(package = "napsreview")
+raw_data_dir <- "./naps_raw"
 raw_data_dir |>
   file.path("PM25_2002.csv") |> # v1 file
   readLines(encoding = "UTF-8") |> # actually latin1
@@ -407,8 +411,7 @@ data have allignment issues.
 library(napsreview)
 
 # Connect to database (change path here if you did earlier as well)
-db_path <- system.file("extdata", package = "napsreview") |>
-  file.path("naps.duckdb")
+db_path <- "./naps.duckdb"
 db <- connect_to_database(db_path)
 on.exit(DBI::dbDisconnect(db))
 
