@@ -6,5 +6,5 @@
 ^\.vscode$
 ^README\.Rmd$
 ^README_cache/.*
-^inst/extdata/.*
+^inst/extdata/issues/.*
 ^LICENSE\.md$
