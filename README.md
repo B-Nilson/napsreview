@@ -8,7 +8,7 @@
 <!-- badges: end -->
 
 `napsreview` is an R package with the goal of assessing the validity of
-the National Air Pollution Surveillance (NAPS) Program archive of
+the National Air Pollution Surveillance (NAPS) program’s archive of
 Canadian quality-assured continuous air quality observations.
 
 You can read more about the NAPS Program
