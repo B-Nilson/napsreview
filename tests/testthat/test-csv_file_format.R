@@ -58,5 +58,3 @@ test_that("extra columns added by excel are not present", {
 
   expect_true(all(n_cols_each_file %in% c(31, 32)))
 })
-
-# TODO: add test showing how method_code is only in PM2.5 files ?
