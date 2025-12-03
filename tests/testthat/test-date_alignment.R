@@ -33,14 +33,12 @@ test_that("aligns with bcgov data", {
     sub(pattern = "_bcgov$", replacement = "")
   for (pollutant in pollutants) {
     value_cols <- pollutant |> paste0("_", c("bcgov", "naps"))
-    name_cols <- pollutant |> paste0("_", c("bcgov_lag", "naps_lag"))
     issues_dir <- paste0("extdata/issues") |>
       system.file(package = "napsreview")
     passed[[pollutant]] <- aligned_data |>
       check_date_alignment(
         pollutant = pollutant,
         value_cols = value_cols,
-        name_cols = name_cols,
         save_issues_to = issues_dir
       )
   }

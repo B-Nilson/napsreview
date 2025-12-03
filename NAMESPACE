@@ -2,6 +2,7 @@
 
 export(archive_fmt_naps_data)
 export(archive_raw_naps_data)
+export(check_date_alignment)
 export(connect_to_database)
 export(format_naps_data)
 export(get_and_archive_bcgov_data)

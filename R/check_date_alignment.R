@@ -1,3 +1,11 @@
+#' Check date alignment of NAPS data
+#'
+#' @param aligned_data Data frame containing NAPS data aligned with another source by naps_id and date.
+#' @param pollutant Name of pollutant to check date alignment for.
+#' @param value_cols Vector of two column names for the pollutant in `aligned_data`, 1 for each data source.
+#' @param save_issues_to Optional path to save issue csvs to.
+#' @return List of logical vectors for each issue type (overall, site, annual, annual_site) - `TRUE` where no issues were found.
+#' @export
 check_date_alignment <- function(
   aligned_data,
   pollutant,
@@ -12,6 +20,7 @@ check_date_alignment <- function(
     paste(issue_names, "alignment.csv", sep = "_") |>
     as.list() |>
     stats::setNames(issue_names)
+  name_cols <- value_cols |> paste0("_lag")
 
   # Add lag columns for this pollutant
   pol_lags <- aligned_data |>

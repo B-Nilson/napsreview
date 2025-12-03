@@ -377,7 +377,6 @@ for (pollutant in pollutants) {
     check_date_alignment(
       pollutant = pollutant,
       value_cols = pollutant |> paste0("_", c("bcgov", "naps")),
-      name_cols = pollutant |> paste0("_", c("bcgov_lag", "naps_lag")),
       save_issues_to = issues_dir
     )
 }
