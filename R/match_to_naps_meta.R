@@ -34,7 +34,8 @@ match_to_naps_meta <- function(meta, distance_threshold_km = 0.25) {
         dplyr::mutate(dplyr::across(
           dplyr::all_of(c("lat", "lng")),
           \(x) round(x, 3)
-        )),
+        )) |>
+        dplyr::select(dplyr::any_of(c(naps_id = "site_id", "lat", "lng"))),
       by = c("lat", "lng")
     ) |>
     dplyr::group_by(.data$site_id) |>
