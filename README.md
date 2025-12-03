@@ -436,8 +436,12 @@ passed <- list()
 pollutants <- names(aligned_data) |>
   stringr::str_subset("_bcgov$") |>
   sub(pattern = "_bcgov$", replacement = "")
-issues_dir <- paste0("extdata/issues") |> # adjust as needed
-  system.file(package = "napsreview")
+issues_dir <- "extdata" |>
+  system.file(package = "napsreview") |> 
+  file.path("issues")
+if (!dir.exists(issues_dir)) {
+  dir.create(issues_dir, recursive = TRUE)
+}
 for (pollutant in pollutants) {
   passed[[pollutant]] <- aligned_data |>
     check_date_alignment(

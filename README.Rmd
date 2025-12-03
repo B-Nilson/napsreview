@@ -370,8 +370,12 @@ passed <- list()
 pollutants <- names(aligned_data) |>
   stringr::str_subset("_bcgov$") |>
   sub(pattern = "_bcgov$", replacement = "")
-issues_dir <- paste0("extdata/issues") |> # adjust as needed
-  system.file(package = "napsreview")
+issues_dir <- "extdata" |>
+  system.file(package = "napsreview") |> 
+  file.path("issues")
+if (!dir.exists(issues_dir)) {
+  dir.create(issues_dir, recursive = TRUE)
+}
 for (pollutant in pollutants) {
   passed[[pollutant]] <- aligned_data |>
     check_date_alignment(
@@ -440,9 +444,11 @@ point_layers <- list(
     label = ~ paste0(naps_id, ": ", city)
   )
 )
-# May need to run: webshot::install_phantomjs()
 if (!rlang::is_installed("webshot")) {
   install.packages("webshot")
+}
+if (!webshot::is_phantomjs_installed()) {
+  webshot::install_phantomjs()
 }
 aqmapr::make_leaflet_map(
   point_layers = point_layers,
