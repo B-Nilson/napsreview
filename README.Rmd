@@ -87,7 +87,7 @@ if (!DBI::dbExistsTable(db, "raw_data")) {
 }
 
 # Format data and write to database if needed
-# *takes ~30 minutes to run on my machine* # TODO: confirm
+# *takes ~60 minutes to run on my machine*
 if (!DBI::dbExistsTable(db, "fmt_data")) {
   db |>
     archive_fmt_naps_data(
@@ -98,7 +98,7 @@ if (!DBI::dbExistsTable(db, "fmt_data")) {
 }
 
 # Get and archive bcgov data if needed
-# *takes ~?? minutes to run on my machine* # TODO: assess
+# *takes ~30-60 minutes to run on my machine*
 if (!DBI::dbExistsTable(db, "bcgov_data")) {
   date_range <- db |>
     dplyr::tbl("raw_data") |>
@@ -134,6 +134,8 @@ db |> dplyr::tbl("raw_data_headers")
 db |> dplyr::tbl("fmt_data")
 db |> dplyr::tbl("fmt_meta")
 db |> dplyr::tbl("bcgov_data")
+db |> dplyr::tbl("bcgov_meta")
+db |> dplyr::tbl("bcgov_aligned_data")
 
 
 ```
@@ -218,7 +220,7 @@ library(napsreview)
   read.csv() |>
   tidyr::separate(file_name, into = c("pollutant", "year"), sep = "_") |>
   dplyr::group_by(pollutant) |>
-  dplyr::summarise(years = sentence_range(as.integer(year))) |>
+  dplyr::summarise(years = handyr::sentence_range(as.integer(year))) |>
   tidyr::unite(col = "text", pollutant, years, sep = ": ") |>
   dplyr::pull(text) |>
   paste(collapse = "\n") |>

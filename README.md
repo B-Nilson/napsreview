@@ -82,7 +82,7 @@ if (!DBI::dbExistsTable(db, "raw_data")) {
 }
 
 # Format data and write to database if needed
-# *takes ~30 minutes to run on my machine* # TODO: confirm
+# *takes ~60 minutes to run on my machine*
 if (!DBI::dbExistsTable(db, "fmt_data")) {
   db |>
     archive_fmt_naps_data(
@@ -93,7 +93,7 @@ if (!DBI::dbExistsTable(db, "fmt_data")) {
 }
 
 # Get and archive bcgov data if needed
-# *takes ~?? minutes to run on my machine* # TODO: assess
+# *takes ~30-60 minutes to run on my machine*
 if (!DBI::dbExistsTable(db, "bcgov_data")) {
   date_range <- db |>
     dplyr::tbl("raw_data") |>
@@ -128,6 +128,8 @@ db |> dplyr::tbl("raw_data_headers")
 db |> dplyr::tbl("fmt_data")
 db |> dplyr::tbl("fmt_meta")
 db |> dplyr::tbl("bcgov_data")
+db |> dplyr::tbl("bcgov_meta")
+db |> dplyr::tbl("bcgov_aligned_data")
 ```
 
 # Assess Validity
