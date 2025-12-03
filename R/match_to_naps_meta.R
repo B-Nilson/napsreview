@@ -16,7 +16,8 @@ match_to_naps_meta <- function(meta, distance_threshold_km = 0.25) {
             gsub(pattern = "[^a-z]", replacement = "")
         ) |>
         dplyr::select(dplyr::any_of(c(naps_id = "site_id", "site_name_clean"))),
-      by = "site_name_clean"
+      by = "site_name_clean",
+      relationship = "many-to-many"
     ) |>
     dplyr::group_by(.data$site_id) |>
     dplyr::summarise(naps_id = paste(.data$naps_id, collapse = ","))
