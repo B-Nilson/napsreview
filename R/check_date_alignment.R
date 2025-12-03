@@ -126,7 +126,7 @@ check_date_alignment <- function(
     bad_site_years |>
       dplyr::arrange(.data$naps_id, .data$year) |>
       dplyr::group_by(.data$naps_id, .data$best_lag_a, .data$best_lag_b) |>
-      dplyr::summarise(years = sentence_range(.data$year), .groups = "drop") |>
+      dplyr::summarise(years = handyr::sentence_range(.data$year), .groups = "drop") |>
       apply(1, \(x) {
         x <- as.list(x)
         "For site %s and years %s, the best correlation is between %s and %s" |>

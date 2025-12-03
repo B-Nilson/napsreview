@@ -167,7 +167,7 @@ test_that("all coordinates are within the province the site is marked in", {
     dplyr::group_by(site_id, lat, lng, prov_terr, expected_prov_terr) |>
     dplyr::summarise(
       pollutants = unique(pollutant) |> sort() |> paste(collapse = ", "),
-      years = unique(year) |> as.integer() |> sentence_range(),
+      years = unique(year) |> as.integer() |> handyr::sentence_range(),
       .groups = "drop"
     )
 
@@ -280,8 +280,8 @@ test_that("lat/lng values have consistent precision", {
     dplyr::collect()
   precision_summary <- unique_coords |>
     dplyr::mutate(
-      lat_precision = get_precision(lat),
-      lng_precision = get_precision(lng)
+      lat_precision = handyr::get_precision(lat),
+      lng_precision = handyr::get_precision(lng)
     ) |>
     dplyr::left_join(
       raw_data |>
@@ -330,8 +330,8 @@ test_that("coordinates have 5 decimal places", {
     dplyr::collect()
   precision_summary <- unique_coords |>
     dplyr::mutate(
-      lat_precision = get_precision(lat),
-      lng_precision = get_precision(lng)
+      lat_precision = handyr::get_precision(lat),
+      lng_precision = handyr::get_precision(lng)
     ) |>
     dplyr::left_join(
       raw_data |>
