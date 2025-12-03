@@ -1962,7 +1962,7 @@
       "RemoteUsername": "B-Nilson",
       "RemoteRepo": "handyr",
       "RemoteRef": "main",
-      "RemoteSha": "c046c3ed3114792d33e539079f6a8b5b300366d1",
+      "RemoteSha": "05df779c19fbca043c05593e99678633b5fd9a5f",
       "RemoteHost": "api.github.com"
     },
     "highr": {
