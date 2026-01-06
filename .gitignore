@@ -4,6 +4,7 @@
 .httr-oauth
 .DS_Store
 .quarto
+inst/extdata/ab_data/
 inst/extdata/naps_raw/
 inst/extdata/naps.duckdb
 inst/extdata/naps.duckdb.wal
