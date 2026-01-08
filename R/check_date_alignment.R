@@ -16,7 +16,7 @@ check_date_alignment <- function(
 ) {
   # Initialize
   passed <- list()
-  issue_names <- c("overall", "site", "annual", "annual_site")
+  issue_names <- c("overall", "site", "annual", "annual_site", "monthly_site")
   issue_files <- pollutant |>
     paste(issue_names, "alignment.csv", sep = "_") |>
     as.list() |>
@@ -160,6 +160,47 @@ check_date_alignment <- function(
       bad_site_years <- annual_site_cor
     }
     bad_site_years |>
+      dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
+      utils::write.csv(file = issue_file, row.names = FALSE)
+  } else {
+    if (file.exists(issue_file)) file.remove(issue_file)
+  }
+  
+  # Test monthly alignment site by site
+  monthly_site_cor <- pol_lags |>
+    dplyr::mutate(year_month = lubridate::floor_date(date, "months")) |>
+    get_lagged_correlation(
+      values_from = value_cols,
+      names_from = name_cols,
+      group_names = c("year_month", "naps_id")
+    )
+  bad_site_months <- monthly_site_cor |>
+    dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
+    dplyr::filter(
+      .data$best_lag_a != value_cols[1] | .data$best_lag_b != value_cols[2],
+      .data$best_cor >= 0.9,
+      .data$mean_count >= 500
+    )
+  issue_file <- save_issues_to |> file.path(issue_files$monthly_site)
+  passed$monthly_site <- nrow(bad_site_months) == 0
+  if (!passed$monthly_site) {
+    bad_site_months |>
+      dplyr::arrange(.data$naps_id, .data$year_month) |>
+      dplyr::group_by(.data$naps_id, .data$best_lag_a, .data$best_lag_b) |>
+      dplyr::summarise(
+        year_months = paste(.data$year_month, collapse = ", "),
+        .groups = "drop"
+      ) |>
+      apply(1, \(x) {
+        x <- as.list(x)
+        "For site %s and months %s, the best correlation is between %s and %s" |>
+          sprintf(x$naps_id, x$years, x$best_lag_a, x$best_lag_b) |>
+          warning()
+      })
+    if (!save_only_bad) {
+      bad_site_months <- monthly_site_cor
+    }
+    bad_site_months |>
       dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
       utils::write.csv(file = issue_file, row.names = FALSE)
   } else {

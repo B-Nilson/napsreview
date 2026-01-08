@@ -67,10 +67,16 @@ test_that("aligns with praries data", {
     )
 
   # Check timezones are assumed correctly by province
-  # aligned_data |>
-  #   dplyr::filter(!is.na(pm25_praries)) |>
-  #   dplyr::left_join(dplyr::collect(db |> dplyr::tbl("praries_meta") |> dplyr::select(-naps_id)), by = "site_id") |>
-  #   dplyr::group_split(prov_terr)
+  aligned_data |>
+    dplyr::filter(!is.na(pm25_praries)) |>
+    dplyr::left_join(dplyr::collect(db |> dplyr::tbl("praries_meta") |> dplyr::select(-naps_id)), by = "site_id", relationship = "many-to-many") |>
+    dplyr::group_split(prov_terr)
+  
+  # Check specific sites/months
+  aligned_data |>
+    dplyr::filter(naps_id == "065301") |> 
+    dplyr::filter(format(date, "%Y-%m") %in% c("2023-01", "2023-02"))
+  
   # Test alignment for each pollutant
   passed <- list()
   pollutants <- names(aligned_data) |>
