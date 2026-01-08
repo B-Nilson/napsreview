@@ -11,7 +11,8 @@ check_date_alignment <- function(
   pollutant,
   value_cols,
   name_cols,
-  save_issues_to = NULL
+  save_issues_to = NULL,
+  save_only_bad = TRUE
 ) {
   # Initialize
   passed <- list()
@@ -83,7 +84,12 @@ check_date_alignment <- function(
           sprintf(x$naps_id, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_sites |> utils::write.csv(file = issue_file, row.names = FALSE)
+    if (!save_only_bad) {
+      bad_sites <- site_cor
+    }
+    bad_sites |>
+      dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
+      utils::write.csv(file = issue_file, row.names = FALSE)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }
@@ -110,7 +116,12 @@ check_date_alignment <- function(
           sprintf(x$year, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_years |> utils::write.csv(file = issue_file, row.names = FALSE)
+    if (!save_only_bad) {
+      bad_years <- annual_cor
+    }
+    bad_years |>
+      dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
+      utils::write.csv(file = issue_file, row.names = FALSE)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }
@@ -142,7 +153,12 @@ check_date_alignment <- function(
           sprintf(x$naps_id, x$years, x$best_lag_a, x$best_lag_b) |>
           warning()
       })
-    bad_site_years |> utils::write.csv(file = issue_file, row.names = FALSE)
+    if (!save_only_bad) {
+      bad_site_years <- annual_site_cor
+    }
+    bad_site_years |>
+      dplyr::select(-dplyr::any_of(c("cor_matrix", "count_matrix"))) |>
+      utils::write.csv(file = issue_file, row.names = FALSE)
   } else {
     if (file.exists(issue_file)) file.remove(issue_file)
   }

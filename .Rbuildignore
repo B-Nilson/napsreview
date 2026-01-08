@@ -8,4 +8,4 @@
 ^README_cache/.*
 ^inst/extdata/issues/.*
 ^LICENSE\.md$
-^inst/extdata/ab_data/.*
+^inst/extdata/praries_data/.*
