@@ -49,7 +49,10 @@ archive_praries_data <- function(db) {
   )
   praries_data <- file_paths[c("ab_obs", "mb_obs", "sk_obs")] |>
     handyr::for_each(data.table::fread, .bind = TRUE) |>
-    dplyr::left_join(praries_meta |> dplyr::distinct(site_id, .keep_all = TRUE), by = "site_id") |>
+    dplyr::left_join(
+      praries_meta |> dplyr::distinct(site_id, .keep_all = TRUE),
+      by = "site_id"
+    ) |>
     dplyr::mutate(
       .by = "tz_local",
       date_original = meas_start + lubridate::hours(1),

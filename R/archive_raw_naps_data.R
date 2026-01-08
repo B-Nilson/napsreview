@@ -35,7 +35,10 @@ archive_raw_naps_data <- function(
       .show_progress = FALSE
     ) |>
     # some pollutants don't have method codes, so need to do some cleanup
-    dplyr::relocate(dplyr::any_of("Method Code//Code M\u00E9thode"), .after = 2) |>
+    dplyr::relocate(
+      dplyr::any_of("Method Code//Code M\u00E9thode"),
+      .after = 2
+    ) |>
     dplyr::mutate(
       dplyr::across(dplyr::any_of("Method Code//Code M\u00E9thode"), \(x) {
         handyr::swap(x, what = NA, with = -999) |> as.integer()

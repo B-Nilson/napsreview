@@ -146,7 +146,10 @@ check_date_alignment <- function(
     bad_site_years |>
       dplyr::arrange(.data$naps_id, .data$year) |>
       dplyr::group_by(.data$naps_id, .data$best_lag_a, .data$best_lag_b) |>
-      dplyr::summarise(years = handyr::sentence_range(.data$year), .groups = "drop") |>
+      dplyr::summarise(
+        years = handyr::sentence_range(.data$year),
+        .groups = "drop"
+      ) |>
       apply(1, \(x) {
         x <- as.list(x)
         "For site %s and years %s, the best correlation is between %s and %s" |>
@@ -191,6 +194,10 @@ check_date_alignment <- function(
                   value_cols = value_cols,
                   name_cols = name_cols,
                   site_id = .data$naps_id[i]
+                ) |>
+                handyr::on_error(
+                  .return = ggplot2::ggplot(),
+                  .warn = "Not enough data"
                 )
               gg |>
                 handyr::save_figure(
@@ -206,6 +213,10 @@ check_date_alignment <- function(
                     ),
                   page_width = 7,
                   taller = 3
+                ) |>
+                handyr::on_error(
+                  .return = ggplot2::ggplot(),
+                  .warn = "Not enough data"
                 )
             }
           )

@@ -286,7 +286,7 @@ test_that("lat/lng values have consistent precision", {
     dplyr::left_join(
       raw_data |>
         dplyr::distinct(site_id, lat, lng, file_name = name) |>
-        dplyr::collect() |> 
+        dplyr::collect() |>
         dplyr::group_by(site_id, lat, lng) |>
         dplyr::summarise(
           files = file_name |> sort() |> paste(collapse = ", "),
@@ -336,7 +336,7 @@ test_that("coordinates have 5 decimal places", {
     dplyr::left_join(
       raw_data |>
         dplyr::distinct(site_id, lat, lng, file_name = name) |>
-        dplyr::collect() |> 
+        dplyr::collect() |>
         dplyr::group_by(site_id, lat, lng) |>
         dplyr::summarise(
           files = file_name |> sort() |> paste(collapse = ", "),
