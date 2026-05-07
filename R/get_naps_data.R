@@ -137,7 +137,7 @@ read_naps_csv <- function(csv_file) {
   # Extract obs. data
   data <- csv_lines[-header_rows] |>
     paste(collapse = "\n") |>
-    data.table::fread(keepLeadingZeros = TRUE) |>
+    data.table::fread(keepLeadingZeros = TRUE, fill = TRUE) |>
     # Force site ID to be character in case loaded as integer
     # (some files may not have leading 0's)
     dplyr::mutate(
